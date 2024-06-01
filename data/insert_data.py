@@ -1,14 +1,16 @@
 import pymongo
 import pandas as pd
 from sklearn.datasets import fetch_california_housing
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 DATABASE_NAME = os.getenv("DATABASE_NAME")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+
+print(MONGODB_URI, DATABASE_NAME, COLLECTION_NAME)
 
 
 def fetch_and_prepare_data():
@@ -28,6 +30,7 @@ def insert_data_to_mongodb(data, uri, db_name, collection_name):
 
 
 if __name__ == "__main__":
+    load_dotenv()
     data = fetch_and_prepare_data()
     insert_data_to_mongodb(data, MONGODB_URI, DATABASE_NAME, COLLECTION_NAME)
     print("Dados inseridos no MongoDB com sucesso!")

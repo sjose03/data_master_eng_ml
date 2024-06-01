@@ -199,8 +199,8 @@ Repita os passos acima para cada um dos secrets mencionados.
 
 2. Crie e ative um ambiente virtual Python (recomendado):
     ```bash
-    python3.9 -m venv env
-    source env/bin/activate  # Para Windows use `env\Scripts\activate`
+    python3.9 -m venv venv
+    source venv/bin/activate  # Para Windows use `env\Scripts\activate`
     ```
 
 3. Instale as dependências:
