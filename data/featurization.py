@@ -29,9 +29,10 @@ def create_features(data):
     return features_scaled
 
 if __name__ == "__main__":
-    MONGODB_URI = "your-mongodb-atlas-uri"
-    DATABASE_NAME = "your-database-name"
-    COLLECTION_NAME = "california_housing"
+    load_dotenv()
+    MONGODB_URI = os.getenv("MONGODB_URI")
+    DATABASE_NAME = os.getenv("DATABASE_NAME")
+    COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 
     data, target = get_data_from_mongodb(MONGODB_URI, DATABASE_NAME, COLLECTION_NAME)
     features = create_features(data)
