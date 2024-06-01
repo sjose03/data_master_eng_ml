@@ -1,0 +1,11 @@
+comet_ml
+xgboost
+scikit-learn
+pymongo
+joblib
+pandas
+uvicorn
+fastapi
+pytest
+requests
+python-jose
