@@ -6,17 +6,17 @@ on:
       - main
 
 jobs:
-  call_setup:
-    uses: ./.github/workflows/setup.yml
-
-  call_install_dependencies:
-    needs: call_setup
-    uses: ./.github/workflows/install_dependencies.yml
+  call_setup_and_install:
+    uses: ./.github/workflows/setup_and_install.yml
 
   call_run_tests:
-    needs: call_install_dependencies
+    needs: call_setup_and_install
     uses: ./.github/workflows/run_tests.yml
 
-  call_deploy:
+  call_train:
     needs: call_run_tests
+    uses: ./.github/workflows/train.yml
+
+  call_deploy:
+    needs: call_train
     uses: ./.github/workflows/deploy.yml

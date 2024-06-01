@@ -21,23 +21,25 @@ Este projeto demonstra a implementação de um pipeline de MLOps para um problem
 project-root/
 ├── .github/
 │   └── workflows/
-│       ├── checkout.yml
-│       ├── setup.yml
-│       ├── install_dependencies.yml
+│       ├── main.yml
+│       ├── setup_and_install.yml
 │       ├── run_tests.yml
-│       └── deploy.yml
+│       ├── deploy.yml
+│       └── train.yml
 ├── data/
 │   ├── featurization.py
 │   ├── insert_data.py
-│   └── test_data_processing.py
 ├── models/
 │   ├── train.py
 │   └── deploy.py
 ├── tests/
-│   ├── unit.py
-│   ├── integration.py
-│   └── test_api.py
-├── api/
+│   ├── test_featurization.py
+│   ├── test_insert_data.py
+│   ├── test_train.py
+│   ├── test_integration.py
+│   ├── test_api.py
+│   └── test_data_processing.py
+├── app/
 │   └── main.py
 ├── frontend/
 │   └── app.py
@@ -73,36 +75,137 @@ O monitoramento de dados é realizado utilizando a ferramenta Evidently para det
 
 ### 5. CI/CD com GitHub Actions
 
-O pipeline CI/CD é dividido em várias etapas:
-- `checkout.yml`: Faz o checkout do código.
-- `setup.yml`: Configura o ambiente Python.
-- `install_dependencies.yml`: Instala as dependências.
-- `run_tests.yml`: Executa testes unitários e de integração.
-- `deploy.yml`: Implanta o modelo.
+O pipeline CI/CD é dividido em várias etapas que são executadas em uma ordem específica para garantir que o código seja configurado, testado, treinado e implantado corretamente.
+
+### main.yml (Workflow Principal)
+- **Acionado por:** Push na branch `main`.
+- **Função:** Orquestra a execução dos outros workflows em ordem.
+
+### setup_and_install.yml
+- **Acionado por:** Chamado pelo `main.yml`.
+- **Função:** Configura o ambiente e instala as dependências.
+
+### run_tests.yml
+- **Acionado por:** Chamado pelo `main.yml` após `setup_and_install.yml`.
+- **Função:** Executa todos os testes para garantir que o código está funcionando corretamente.
+
+### train.yml
+- **Acionado por:** Chamado pelo `main.yml` após `run_tests.yml`.
+- **Função:** Treina o modelo de machine learning.
+
+### deploy.yml
+- **Acionado por:** Chamado pelo `main.yml` após `train.yml`.
+- **Função:** Implanta o modelo treinado.
 
 ### 6. Servindo o Modelo
 
 O script `main.py` fornece um endpoint API para previsões online e em batch, utilizando autenticação JWT.
 
+## Setup
+### 1. Criação de Contas
+
+#### CometML
+
+1. Acesse [CometML](https://www.comet.ml/) e crie uma conta.
+2. Crie um novo projeto no CometML.
+3. Gere uma API Key em `Settings -> API Keys`.
+4. Anote o nome do workspace, do projeto e a API Key.
+
+#### MongoDB Atlas
+
+1. Acesse [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) e crie uma conta.
+2. Crie um novo cluster.
+3. Configure um usuário e uma senha para acessar o cluster.
+4. Anote a URI de conexão do MongoDB Atlas.
+
+### 2. Cadastro das Secrets no GitHub
+
+
+1. Vá para o repositório do seu projeto no GitHub.
+
+2. Clique na aba `Settings` (Configurações) no menu superior do repositório.
+
+3. No menu lateral esquerdo, clique em `Secrets and variables`.
+4. Clique em `Actions`.
+5. Clique no botão `New repository secret` (Novo secret do repositório).
+6. Adicione os seguintes secrets com seus respectivos valores:
+
+- **COMET_API_KEY**: A chave da API do CometML.
+- **MONGODB_URI**: A URI de conexão com o MongoDB Atlas.
+- **DATABASE_NAME**: O nome do banco de dados no MongoDB.
+- **COLLECTION_NAME**: O nome da coleção no MongoDB.
+- **SECRET_KEY**: A chave secreta para autenticação JWT.
+- **COMET_WORKSPACE**: O nome do workspace do CometML.
+- **COMET_MODEL_NAME**: O nome do modelo no CometML.
+- **COMET_PROJECT_NAME**: O nome do projeto no CometML.
+- **API_TOKEN**: O token de API para autenticação.
+
+#### Exemplo de Adição de Secret
+
+1. Clique em `New repository secret`.
+2. No campo `Name`, insira `COMET_API_KEY`.
+3. No campo `Value`, insira sua chave da API do CometML.
+4. Clique no botão `Add secret`.
+
+Repita os passos acima para cada um dos secrets mencionados.
+
+#### 6. Verificação
+
+1. Após adicionar todos os secrets, você pode verificá-los na lista de secrets do repositório. Certifique-se de que todos os secrets necessários estão listados e com os valores corretos.
+
+
+
+
 ## Instruções para Uso
 
 ### 1. Configuração do Ambiente
 
+#### Instalação do Python 3.9
+
+1. **Windows**:
+    - Baixe o instalador do Python 3.9 em [python.org](https://www.python.org/downloads/release/python-390/).
+    - Execute o instalador e siga as instruções, certificando-se de selecionar a opção "Add Python to PATH".
+    - Verifique a instalação abrindo um terminal e digitando:
+      ```bash
+      python --version
+      ```
+
+2. **macOS**:
+    - Abra o terminal e instale o Python 3.9 usando Homebrew:
+      ```bash
+      brew install python@3.9
+      ```
+    - Verifique a instalação digitando:
+      ```bash
+      python3.9 --version
+      ```
+
+3. **Linux**:
+    - Abra o terminal e instale o Python 3.9 usando o gerenciador de pacotes da sua distribuição. Por exemplo, no Ubuntu:
+      ```bash
+      sudo apt update
+      sudo apt install python3.9 python3.9-venv python3.9-dev
+      ```
+    - Verifique a instalação digitando:
+      ```bash
+      python3.9 --version
+
+#### Configuração do Projeto
 1. Clone o repositório:
     ```bash
-    git clone https://github.com/your-repo/mlops-pipeline.git
-    cd mlops-pipeline
+    git clone https://github.com/sjose03/data_master_eng_ml.git
+    cd data_master_eng_ml
     ```
 
 2. Crie e ative um ambiente virtual Python (recomendado):
     ```bash
-    python -m venv env
+    python3.9 -m venv env
     source env/bin/activate  # Para Windows use `env\Scripts\activate`
     ```
 
 3. Instale as dependências:
     ```bash
-    python -m pip install --upgrade pip
+    python3 -m pip install --upgrade pip
     pip install -r requirements.txt
     ```
 
@@ -114,6 +217,9 @@ O script `main.py` fornece um endpoint API para previsões online e em batch, ut
       DATABASE_NAME=your-database-name
       COLLECTION_NAME=your-collection-name
       SECRET_KEY=your-secret-key
+      COMET_WORKSPACE=your-comet-workspace
+      COMET_MODEL_NAME=your-comet-model-name
+      COMET_PROJECT_NAME=your-comet-project-name
       ```
 
 ### 2. Ingestão de Dados
@@ -136,17 +242,23 @@ Execute o servidor API:
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 5. CI/CD com GitHub Actions
-Os workflows de CI/CD serão automaticamente acionados em cada push ou pull request.
+## Diagrama do Pipeline CI/CD
 
+![Diagrama do Pipeline CI/CD](images/cicd_diagram.png)
 
-### 6. Diagrama do Pipeline
+O diagrama acima ilustra o fluxo de trabalho dos workflows do GitHub Actions. A ordem de execução é a seguinte:
+
+1. **main.yml:** Inicia o processo e chama os workflows subsequentes.
+2. **setup_and_install.yml:** Configura o ambiente e instala as dependências.
+3. **run_tests.yml:** Executa os testes.
+4. **train.yml:** Treina o modelo.
+5. **deploy.yml:** Implanta o modelo treinado.
 
 
 ![Diagrama do Pipeline](images/pipeline_diagram.png)
 
 
-## Possíveis Melhorias
+## Evoluções Futuras
 
 1. **Automatizar a criação e configuração do ambiente**:
    - Utilizar ferramentas como Docker para garantir que o ambiente seja replicável.

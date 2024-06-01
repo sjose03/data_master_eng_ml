@@ -1,10 +1,10 @@
-name: Deploy
+name: Train Model
 
 on:
   workflow_call:
 
 jobs:
-  deploy:
+  train:
     runs-on: ubuntu-latest
     env:
       COMET_API_KEY: ${{ secrets.COMET_API_KEY }}
@@ -33,6 +33,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Deploy model
+    - name: Train model
       run: |
-        python models/deploy.py
+        python models/train.py

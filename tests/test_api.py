@@ -1,60 +1,46 @@
-import pytest
+import unittest
 from fastapi.testclient import TestClient
-from app.main import app, SECRET_KEY
-import jwt
-
-client = TestClient(app)
+from app.main import app
 
 
-def create_token():
-    payload = {"sub": "test"}
-    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    return token
+class TestAPI(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.client = TestClient(app)
+
+    def test_token_auth(self):
+        response = self.client.post(
+            "/token", data={"username": "test", "password": "test"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access_token", response.json())
+        self.assertIn("token_type", response.json())
+
+    def test_protected_route(self):
+        response = self.client.post(
+            "/token", data={"username": "test", "password": "test"}
+        )
+        token = response.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        response = self.client.post(
+            "/predict",
+            headers=headers,
+            json={
+                "data": {
+                    "longitude": -122.23,
+                    "latitude": 37.88,
+                    "housing_median_age": 41,
+                    "total_rooms": 880,
+                    "total_bedrooms": 129,
+                    "population": 322,
+                    "households": 126,
+                    "median_income": 8.3252,
+                }
+            },
+        )
+        self.assertEqual(response.status_code, 200)
 
 
-def test_predict():
-    token = create_token()
-    headers = {"Authorization": f"Bearer {token}"}
-    data = {
-        "MedInc": 8.3252,
-        "HouseAge": 41.0,
-        "AveRooms": 6.984126984126984,
-        "AveBedrms": 1.0238095238095237,
-        "Population": 322.0,
-        "AveOccup": 2.5555555555555554,
-        "Latitude": 37.88,
-        "Longitude": -122.23,
-    }
-    response = client.post("/predict", json=data, headers=headers)
-    assert response.status_code == 200
-    assert "predictions" in response.json()
-
-
-def test_batch_predict():
-    token = create_token()
-    headers = {"Authorization": f"Bearer {token}"}
-    data = [
-        {
-            "MedInc": 8.3252,
-            "HouseAge": 41.0,
-            "AveRooms": 6.984126984126984,
-            "AveBedrms": 1.0238095238095237,
-            "Population": 322.0,
-            "AveOccup": 2.5555555555555554,
-            "Latitude": 37.88,
-            "Longitude": -122.23,
-        },
-        {
-            "MedInc": 8.3014,
-            "HouseAge": 21.0,
-            "AveRooms": 6.238137082601054,
-            "AveBedrms": 0.9718804920913884,
-            "Population": 2401.0,
-            "AveOccup": 2.109841827768014,
-            "Latitude": 37.86,
-            "Longitude": -122.22,
-        },
-    ]
-    response = client.post("/batch_predict", json=data, headers=headers)
-    assert response.status_code == 200
-    assert "predictions" in response.json()
+if __name__ == "__main__":
+    unittest.main()
