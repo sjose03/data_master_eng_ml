@@ -255,9 +255,6 @@ O diagrama acima ilustra o fluxo de trabalho dos workflows do GitHub Actions. A 
 5. **deploy.yml:** Implanta o modelo treinado.
 
 
-![Diagrama do Pipeline](images/pipeline_diagram.png)
-
-
 ## Evoluções Futuras
 
 1. **Automatizar a criação e configuração do ambiente**:
