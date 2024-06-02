@@ -1,5 +1,10 @@
 import unittest
 from unittest.mock import patch
+import sys
+import os
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from data.insert_data import insert_data
 from pymongo.collection import Collection
 from dotenv import load_dotenv

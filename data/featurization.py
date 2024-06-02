@@ -2,6 +2,7 @@ import pymongo
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 
+
 def get_data_from_mongodb(uri, db_name, collection_name):
     client = pymongo.MongoClient(uri)
     db = client[db_name]
@@ -9,15 +10,20 @@ def get_data_from_mongodb(uri, db_name, collection_name):
 
     data = pd.DataFrame(list(collection.find()))
 
-    target = data['target']
-    features = data.drop(columns=['target'])
+    target = data["target"]
+    features = data.drop(columns=["target"])
 
     return features, target
 
+
 def create_features(data):
-    data['RoomsPerHouse'] = data['AveRooms'] / data['AveOccup']
-    data['BedroomsPerHouse'] = data['AveBedrms'] / data['AveRooms']
-    data['PopulationPerHouse'] = data['Population'] / data['HouseAge']
+    # Remover colunas que não são necessárias para o modelo
+    if "_id" in data.columns:
+        data = data.drop(columns=["_id"])
+
+    data["RoomsPerHouse"] = data["AveRooms"] / data["AveOccup"]
+    data["BedroomsPerHouse"] = data["AveBedrms"] / data["AveRooms"]
+    data["PopulationPerHouse"] = data["Population"] / data["HouseAge"]
 
     poly = PolynomialFeatures(degree=2, include_bias=False)
     poly_features = poly.fit_transform(data)
@@ -27,6 +33,7 @@ def create_features(data):
     scaler = StandardScaler()
     features_scaled = scaler.fit_transform(data)
     return features_scaled
+
 
 if __name__ == "__main__":
     load_dotenv()

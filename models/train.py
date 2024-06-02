@@ -1,10 +1,15 @@
 import os
+import sys
 import joblib
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-from data.featurization import get_data_from_mongodb, create_features
 from dotenv import load_dotenv
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from data.featurization import get_data_from_mongodb, create_features
+
 
 # Carregar variáveis de ambiente
 load_dotenv()

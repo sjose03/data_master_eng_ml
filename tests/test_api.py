@@ -1,6 +1,11 @@
 import unittest
 from fastapi.testclient import TestClient
-from .api.main import app
+import sys
+import os
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from api.main import app
 
 
 class TestAPI(unittest.TestCase):

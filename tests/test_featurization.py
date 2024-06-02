@@ -1,5 +1,10 @@
 import unittest
 import pandas as pd
+import sys
+import os
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from data.featurization import create_features
 from dotenv import load_dotenv
 

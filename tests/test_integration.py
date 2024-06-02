@@ -2,6 +2,11 @@ import unittest
 from unittest.mock import patch
 import joblib
 from fastapi.testclient import TestClient
+import sys
+import os
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from app.main import app
 from dotenv import load_dotenv
 

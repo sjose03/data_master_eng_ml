@@ -2,6 +2,11 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 import joblib
+import sys
+import os
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from models.train import train_model
 from data.featurization import get_data_from_mongodb, create_features
 from dotenv import load_dotenv
