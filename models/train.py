@@ -47,22 +47,15 @@ def train_model(features, target):
         experiment.log_metric("mean_squared_error", mse)
         experiment.log_metric("r2_score", r2)
 
-        # Converter features de volta para DataFrame
-        features_df = pd.DataFrame(features, columns=features.columns)
-
-        # Registrar assinatura do modelo
-        input_example = features_df.head(1).to_dict(orient="records")
-        output_example = model.predict(features_df.head(1))
-        signature = {"input": input_example, "output": output_example.tolist()}
-        model_version = experiment.log_model(
-            COMET_MODEL_NAME, "model.pkl", signature=signature
-        )
+        # Registrar o modelo no CometML
+        model_path = "model.pkl"
+        joblib.dump(model, model_path)
+        experiment.log_model(COMET_MODEL_NAME, model_path)
 
         # Salvar a versão do modelo em um arquivo de ambiente
         with open(".env", "a") as f:
-            f.write(f"\nMODEL_VERSION={model_version}\n")
+            f.write(f"\nMODEL_VERSION=latest\n")  # Ajustar conforme necessário
 
-    joblib.dump(model, "model.pkl")
     return model
 
 

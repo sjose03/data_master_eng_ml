@@ -8,17 +8,12 @@ def create_features(data):
     if "_id" in data.columns:
         data = data.drop(columns=["_id"])
 
-    # Exemplo de criação de features polinomiais
-    poly = PolynomialFeatures(degree=2, include_bias=False)
-    poly_features = poly.fit_transform(data)
-
-    feature_names = poly.get_feature_names_out(data.columns)
-    poly_df = pd.DataFrame(poly_features, columns=feature_names)
+    # poly_df = pd.DataFrame(poly_features, columns=unique_feature_names)
 
     # Combinar com as features originais
-    final_features = pd.concat([data.reset_index(drop=True), poly_df], axis=1)
+    # final_features = pd.concat([data.reset_index(drop=True), poly_df], axis=1)
 
-    return final_features
+    return data
 
 
 def get_data_from_mongodb(uri, database_name, collection_name):
