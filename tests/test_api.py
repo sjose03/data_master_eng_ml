@@ -1,48 +1,70 @@
 import unittest
 from fastapi.testclient import TestClient
-import sys
+from unittest.mock import patch, MagicMock
 import os
+import sys
 
-# Adicione o diretório raiz ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from api.main import app
 
 
 class TestAPI(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.client = TestClient(app)
+    @patch("api.main.API")
+    @patch("api.main.requests.get")
+    def setUp(self, MockAPI, mock_requests_get):
+        self.client = TestClient(app)
 
-    def test_token_auth(self):
-        response = self.client.post(
-            "/token", data={"username": "test", "password": "test"}
-        )
+        # Mock the CometML API
+        self.mock_api = MockAPI.return_value
+        self.mock_api.get_registry_model_details.return_value = {
+            "latestVersion": "1.0.0"
+        }
+        self.mock_api.get_registry_model_version_details.return_value = {
+            "assets": [
+                {"type": "model", "url": "http://example.com/model.pkl"},
+                {
+                    "type": "json",
+                    "fileName": "signature.json",
+                    "url": "http://example.com/signature.json",
+                },
+            ]
+        }
+
+        # Mock the requests.get call
+        mock_requests_get.side_effect = [
+            MagicMock(content=b"mock model content"),
+            MagicMock(json=lambda: {"columns": ["feature1", "feature2"]}),
+        ]
+
+    def test_home(self):
+        response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("access_token", response.json())
-        self.assertIn("token_type", response.json())
 
-    def test_protected_route(self):
-        response = self.client.post(
-            "/token", data={"username": "test", "password": "test"}
-        )
-        token = response.json()["access_token"]
-        headers = {"Authorization": f"Bearer {token}"}
+    def test_predict(self):
         response = self.client.post(
             "/predict",
-            headers=headers,
+            json={"data": [[1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0]]},
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_batch_predict(self):
+        response = self.client.post(
+            "/batch_predict",
             json={
-                "data": {
-                    "longitude": -122.23,
-                    "latitude": 37.88,
-                    "housing_median_age": 41,
-                    "total_rooms": 880,
-                    "total_bedrooms": 129,
-                    "population": 322,
-                    "households": 126,
-                    "median_income": 8.3252,
-                }
+                "data": [
+                    [1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
+                    [1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
+                ]
             },
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_validate(self):
+        response = self.client.post(
+            "/validate",
+            json={"data": [[1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0]]},
         )
         self.assertEqual(response.status_code, 200)
 

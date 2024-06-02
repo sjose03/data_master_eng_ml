@@ -8,6 +8,7 @@ load_dotenv()
 # Verificar se o log no CometML deve ser desativado
 disable_comet_logging = os.getenv("DISABLE_COMET_LOGGING", "False").lower() == "true"
 
+
 if not disable_comet_logging:
     import comet_ml
 
@@ -51,6 +52,15 @@ def train_model(features, target):
         model_path = "model.pkl"
         joblib.dump(model, model_path)
         experiment.log_model(COMET_MODEL_NAME, model_path)
+        # Logar a assinatura do modelo
+        model_signature = {
+            "input_features": list(features.columns),
+            "output_type": "float",
+        }
+        experiment.log_other("model_signature", model_signature)
+        experiment.register_model(
+            COMET_MODEL_NAME, description="Initial XGBoost model", public=True
+        )
 
         # Salvar a versão do modelo em um arquivo de ambiente
         with open(".env", "a") as f:

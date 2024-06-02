@@ -1,13 +1,14 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import joblib
 from fastapi.testclient import TestClient
 import sys
 import os
 
+os.environ["DISABLE_COMET_LOGGING"] = "true"
 # Adicione o diretório raiz ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from app.main import app
+from api.main import app
 from dotenv import load_dotenv
 
 
@@ -20,19 +21,21 @@ class TestIntegration(unittest.TestCase):
         cls.model = joblib.load("model.pkl")
 
     @patch("comet_ml.Experiment")
-    @patch("app.main.get_data_from_mongodb")
+    @patch("data.featurization.get_data_from_mongodb")
     def test_predict(self, mock_get_data, MockExperiment):
         # Mock the data returned by get_data_from_mongodb
         mock_data = {
-            "longitude": [-122.23, -122.22],
-            "latitude": [37.88, 37.86],
-            "housing_median_age": [41, 21],
-            "total_rooms": [880, 7099],
-            "total_bedrooms": [129, 1106],
-            "population": [322, 2401],
-            "households": [126, 1138],
-            "median_income": [8.3252, 8.3014],
-            "median_house_value": [452600, 358500],
+            "Longitude": [-122.23, -122.22],
+            "Latitude": [37.88, 37.86],
+            "HouseAge": [41, 21],
+            "AveRooms": [880, 7099],
+            "AveBedrms": [129, 1106],
+            "Population": [322, 2401],
+            "AveOccup": [126, 1138],
+            "MedInc": [8.3252, 8.3014],
+            "rooms_per_household": [2.72857, 2.95752],
+            "bedrooms_per_room": [0.146591, 0.155797],
+            "population_per_household": [0.391304, 0.473194],
         }
         mock_target = [452600, 358500]
         mock_get_data.return_value = (mock_data, mock_target)
@@ -48,13 +51,16 @@ class TestIntegration(unittest.TestCase):
             json={
                 "data": {
                     "longitude": -122.23,
-                    "latitude": 37.88,
-                    "housing_median_age": 41,
-                    "total_rooms": 880,
-                    "total_bedrooms": 129,
-                    "population": 322,
-                    "households": 126,
-                    "median_income": 8.3252,
+                    "Latitude": 37.88,
+                    "HouseAge": 41,
+                    "AveRooms": 880,
+                    "AveBedrms": 129,
+                    "Population": 322,
+                    "AveOccup": 126,
+                    "MedInc": 8.3252,
+                    "rooms_per_household": 2.72857,
+                    "bedrooms_per_room": 0.146591,
+                    "population_per_household": 0.391304,
                 }
             },
         )
@@ -62,19 +68,21 @@ class TestIntegration(unittest.TestCase):
         self.assertIn("predictions", response.json())
 
     @patch("comet_ml.Experiment")
-    @patch("app.main.get_data_from_mongodb")
+    @patch("data.featurization.get_data_from_mongodb")
     def test_batch_predict(self, mock_get_data, MockExperiment):
         # Mock the data returned by get_data_from_mongodb
         mock_data = {
-            "longitude": [-122.23, -122.22],
-            "latitude": [37.88, 37.86],
-            "housing_median_age": [41, 21],
-            "total_rooms": [880, 7099],
-            "total_bedrooms": [129, 1106],
-            "population": [322, 2401],
-            "households": [126, 1138],
-            "median_income": [8.3252, 8.3014],
-            "median_house_value": [452600, 358500],
+            "Longitude": [-122.23, -122.22],
+            "Latitude": [37.88, 37.86],
+            "HouseAge": [41, 21],
+            "AveRooms": [880, 7099],
+            "AveBedrms": [129, 1106],
+            "Population": [322, 2401],
+            "AveOccup": [126, 1138],
+            "MedInc": [8.3252, 8.3014],
+            "rooms_per_household": [2.72857, 2.95752],
+            "bedrooms_per_room": [0.146591, 0.155797],
+            "population_per_household": [0.391304, 0.473194],
         }
         mock_target = [452600, 358500]
         mock_get_data.return_value = (mock_data, mock_target)
@@ -88,28 +96,36 @@ class TestIntegration(unittest.TestCase):
         data = [
             {
                 "longitude": -122.23,
-                "latitude": 37.88,
-                "housing_median_age": 41,
-                "total_rooms": 880,
-                "total_bedrooms": 129,
-                "population": 322,
-                "households": 126,
-                "median_income": 8.3252,
+                "Latitude": 37.88,
+                "HouseAge": 41,
+                "AveRooms": 880,
+                "AveBedrms": 129,
+                "Population": 322,
+                "AveOccup": 126,
+                "MedInc": 8.3252,
+                "rooms_per_household": 2.72857,
+                "bedrooms_per_room": 0.146591,
+                "population_per_household": 0.391304,
             },
             {
                 "longitude": -122.22,
-                "latitude": 37.86,
-                "housing_median_age": 21,
-                "total_rooms": 7099,
-                "total_bedrooms": 1106,
-                "population": 2401,
-                "households": 1138,
-                "median_income": 8.3014,
+                "Latitude": 37.86,
+                "HouseAge": 21,
+                "AveRooms": 7099,
+                "AveBedrms": 1106,
+                "Population": 2401,
+                "AveOccup": 1138,
+                "MedInc": 8.3014,
+                "rooms_per_household": 2.95752,
+                "bedrooms_per_room": 0.155797,
+                "population_per_household": 0.473194,
             },
         ]
         response = self.client.post("/batch_predict", json={"data": data})
         self.assertEqual(response.status_code, 200)
         self.assertIn("predictions", response.json())
+        # Restore environment variable
+        del os.environ["DISABLE_COMET_LOGGING"]
 
 
 if __name__ == "__main__":

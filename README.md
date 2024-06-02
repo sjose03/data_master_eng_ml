@@ -37,8 +37,7 @@ project-root/
 │   ├── test_insert_data.py
 │   ├── test_train.py
 │   ├── test_integration.py
-│   ├── test_api.py
-│   └── test_data_processing.py
+│   └── test_api.py
 ├── app/
 │   └── main.py
 ├── frontend/

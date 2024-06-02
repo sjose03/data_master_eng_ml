@@ -8,11 +8,13 @@ def create_features(data):
     if "_id" in data.columns:
         data = data.drop(columns=["_id"])
 
+    data["rooms_per_household"] = data["AveRooms"] / data["Population"]
+    data["bedrooms_per_room"] = data["AveBedrms"] / data["AveRooms"]
+    data["population_per_household"] = data["AveOccup"] / data["Population"]
     # poly_df = pd.DataFrame(poly_features, columns=unique_feature_names)
 
     # Combinar com as features originais
     # final_features = pd.concat([data.reset_index(drop=True), poly_df], axis=1)
-
     return data
 
 

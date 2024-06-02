@@ -1,61 +1,99 @@
+from fastapi import FastAPI, HTTPException, Request
 import joblib
-import pandas as pd
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer
-import jwt
-from pydantic import BaseModel
-from typing import List, Dict, Any
-from dotenv import load_dotenv
 import os
-import comet_ml
+from dotenv import load_dotenv
+from pydantic import BaseModel, Field, ValidationError
+import pandas as pd
+import joblib
+from comet_ml import API
+import requests
 
 load_dotenv()
 
 app = FastAPI()
-SECRET_KEY = os.getenv("SECRET_KEY")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-model = joblib.load("model.pkl")
-
-# Obter a assinatura do modelo do CometML
-experiment = comet_ml.API(api_key=os.getenv("COMET_API_KEY"))
-model_info = experiment.get_model_registry_model(
-    "your-workspace-name", "xgboost-regression-model", version="1.0"
-)
-signature = model_info["modelMetadata"]["signature"]
 
 
-# Definir PredictionRequest baseado na assinatura
+class ModelSignature(BaseModel):
+    columns: list = Field(..., example=["feature1", "feature2"])
+
+
 class PredictionRequest(BaseModel):
-    data: Dict[str, Any]
+    data: list
 
 
 class BatchPredictionRequest(BaseModel):
-    data: List[Dict[str, Any]]
+    data: list
 
 
-def verify_token(token: str = Depends(oauth2_scheme)):
+api = API(api_key=os.getenv("COMET_API_KEY"))
+
+
+def fetch_model():
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=403, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=403, detail="Invalid token")
+        model_url = api.get_model(
+            workspace=os.getenv("COMET_WORKSPACE"),
+            model_name=os.getenv("COMET_MODEL_NAME"),
+        )
+        latest_version = model_url.find_versions()[0]
+        print("Model version:", latest_version)
+        model_url.download(
+            version=latest_version,
+            expand=True,
+            output_folder="./",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch model : {str(e)}")
+
+
+fetch_model()
+model_path = "model.pkl"
+model = joblib.load(model_path)
+
+booster = model.get_booster()
+feature_names = booster.feature_names
+print(feature_names)
+# signature = ModelSignature(columns=model_signature["columns"])
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the prediction API"}
 
 
 @app.post("/predict")
-def predict(request: PredictionRequest, token: str = Depends(verify_token)):
-    df = pd.DataFrame([request.data])
-    predictions = model.predict(df)
-    return {"predictions": predictions.tolist()}
+async def predict(request: PredictionRequest):
+    try:
+        data = pd.DataFrame(request.data, columns=feature_names)
+        predictions = model.predict(data)
+        return {"predictions": predictions.tolist()}
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/batch_predict")
-def batch_predict(request: BatchPredictionRequest, token: str = Depends(verify_token)):
-    df = pd.DataFrame(request.data)
-    predictions = model.predict(df)
-    return {"predictions": predictions.tolist()}
+async def batch_predict(request: BatchPredictionRequest):
+    try:
+        data = pd.DataFrame(request.data, columns=feature_names)
+        predictions = model.predict(data)
+        return {"predictions": predictions.tolist()}
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/validate")
+async def validate(request: Request):
+    try:
+        data = await request.json()
+        df = pd.DataFrame(data["data"], columns=feature_names)
+        return {"message": "Data is valid", "data": df.head().to_dict()}
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
