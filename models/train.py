@@ -1,15 +1,6 @@
 import os
 import sys
-import joblib
-import xgboost as xgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
 from dotenv import load_dotenv
-
-# Adicione o diretório raiz ao sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from data.featurization import get_data_from_mongodb, create_features
-
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -30,6 +21,17 @@ if not disable_comet_logging:
         workspace=COMET_WORKSPACE,
     )
 
+import joblib
+import xgboost as xgb
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Adicione o diretório raiz ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from data.featurization import get_data_from_mongodb, create_features
+
 
 # Função principal de treinamento do modelo
 def train_model(features, target):
@@ -45,9 +47,12 @@ def train_model(features, target):
         experiment.log_metric("mean_squared_error", mse)
         experiment.log_metric("r2_score", r2)
 
+        # Converter features de volta para DataFrame
+        features_df = pd.DataFrame(features, columns=features.columns)
+
         # Registrar assinatura do modelo
-        input_example = features.head(1).to_dict(orient="records")
-        output_example = model.predict(features.head(1))
+        input_example = features_df.head(1).to_dict(orient="records")
+        output_example = model.predict(features_df.head(1))
         signature = {"input": input_example, "output": output_example.tolist()}
         model_version = experiment.log_model(
             COMET_MODEL_NAME, "model.pkl", signature=signature
