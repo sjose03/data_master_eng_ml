@@ -45,7 +45,21 @@ class TestAPI(unittest.TestCase):
     def test_predict(self):
         response = self.client.post(
             "/predict",
-            json={"data": [[1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0]]},
+            json={
+                "data": {
+                    "MedInc": 8.3014,
+                    "HouseAge": 21,
+                    "AveRooms": 7099,
+                    "AveBedrms": 1106,
+                    "Population": 2401,
+                    "AveOccup": 1138,
+                    "Latitude": 37.86,
+                    "Longitude": -122.22,
+                    "rooms_per_household": 2.95752,
+                    "bedrooms_per_room": 0.155797,
+                    "population_per_household": 0.473194,
+                }
+            },
         )
         self.assertEqual(response.status_code, 200)
 

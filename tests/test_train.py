@@ -21,6 +21,8 @@ class TestTrainModel(unittest.TestCase):
     def setUpClass(cls):
         load_dotenv()
 
+    os.environ["DISABLE_COMET_LOGGING"] = "true"
+
     @patch("comet_ml.Experiment")
     @patch("data.featurization.get_data_from_mongodb")
     def test_train_model(self, mock_get_data, MockExperiment):
@@ -56,7 +58,7 @@ class TestTrainModel(unittest.TestCase):
         self.assertIsNotNone(loaded_model)
 
         # Restore environment variable
-        del os.environ["DISABLE_COMET_LOGGING"]
+        os.environ["DISABLE_COMET_LOGGING"] = "False"
 
 
 if __name__ == "__main__":

@@ -62,10 +62,6 @@ def train_model(features, target):
             COMET_MODEL_NAME, description="Initial XGBoost model", public=True
         )
 
-        # Salvar a versão do modelo em um arquivo de ambiente
-        with open(".env", "a") as f:
-            f.write(f"\nMODEL_VERSION=latest\n")  # Ajustar conforme necessário
-
     return model
 
 

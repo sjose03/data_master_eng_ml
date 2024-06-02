@@ -18,7 +18,7 @@ class ModelSignature(BaseModel):
 
 
 class PredictionRequest(BaseModel):
-    data: list
+    data: dict
 
 
 class BatchPredictionRequest(BaseModel):
@@ -63,12 +63,14 @@ def read_root():
 @app.post("/predict")
 async def predict(request: PredictionRequest):
     try:
-        data = pd.DataFrame(request.data, columns=feature_names)
+        data = pd.DataFrame(request.data, columns=feature_names, index=[0])
         predictions = model.predict(data)
         return {"predictions": predictions.tolist()}
+
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=e.errors())
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
