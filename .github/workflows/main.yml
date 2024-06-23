@@ -6,12 +6,7 @@ on:
       - main
 
 jobs:
-  call_setup_and_install:
-    uses: ./.github/workflows/setup_and_install.yml
-
-
   call_run_tests:
-    needs: call_setup_and_install
     uses: ./.github/workflows/run_tests.yml
     secrets: inherit
 
