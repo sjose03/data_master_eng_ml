@@ -24,6 +24,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
+        cache: 'pip'
 
     - name: Verify requirements file
       run: ls -l requirements.txt
