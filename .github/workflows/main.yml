@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/train.yml
     secrets: inherit
 
-  call_deploy:
-    needs: call_train
-    uses: ./.github/workflows/deploy.yml
-    secrets: inherit
+  # call_deploy:
+  #   needs: call_train
+  #   uses: ./.github/workflows/deploy.yml
+  #   secrets: inherit
