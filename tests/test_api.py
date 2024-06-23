@@ -11,9 +11,8 @@ from api.main import app
 
 class TestAPI(unittest.TestCase):
 
-    @patch("api.main.API")
-    @patch("api.main.requests.get")
-    def setUp(self, MockAPI, mock_requests_get):
+    @patch("api.main.app")
+    def setUp(self, MockAPI):
         self.client = TestClient(app)
 
         # Mock the CometML API
@@ -32,56 +31,90 @@ class TestAPI(unittest.TestCase):
             ]
         }
 
-        # Mock the requests.get call
-        mock_requests_get.side_effect = [
-            MagicMock(content=b"mock model content"),
-            MagicMock(json=lambda: {"columns": ["feature1", "feature2"]}),
-        ]
-
     def test_home(self):
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
+        expected_status_code = 200
+        self.assertEqual(
+            response.status_code,
+            expected_status_code,
+            f"Expected status code {expected_status_code}, got {response.status_code}",
+        )
 
     def test_predict(self):
-        response = self.client.post(
-            "/predict",
-            json={
-                "data": {
-                    "MedInc": 8.3014,
-                    "HouseAge": 21,
-                    "AveRooms": 7099,
-                    "AveBedrms": 1106,
-                    "Population": 2401,
-                    "AveOccup": 1138,
-                    "Latitude": 37.86,
-                    "Longitude": -122.22,
-                    "rooms_per_household": 2.95752,
-                    "bedrooms_per_room": 0.155797,
-                    "population_per_household": 0.473194,
-                }
-            },
+        request_data = {
+            "data": {
+                "MedInc": 8.3014,
+                "HouseAge": 21,
+                "AveRooms": 7099,
+                "AveBedrms": 1106,
+                "Population": 2401,
+                "AveOccup": 1138,
+                "Latitude": 37.86,
+                "Longitude": -122.22,
+                "rooms_per_household": 2.95752,
+                "bedrooms_per_room": 0.155797,
+                "population_per_household": 0.473194,
+            }
+        }
+        response = self.client.post("/predict", json=request_data)
+        expected_status_code = 200
+        self.assertEqual(
+            response.status_code,
+            expected_status_code,
+            f"Expected status code {expected_status_code}, got {response.status_code}. Request data: {request_data}, Response: {response.json()}",
         )
-        self.assertEqual(response.status_code, 200)
 
     def test_batch_predict(self):
-        response = self.client.post(
-            "/batch_predict",
-            json={
-                "data": [
-                    [1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
-                    [1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
-                ]
-            },
+        request_data = {
+            "data": [
+                {
+                    "AveBedrms": 0,
+                    "AveOccup": 0,
+                    "AveRooms": 0,
+                    "HouseAge": 0,
+                    "Latitude": 0,
+                    "Longitude": 0,
+                    "MedInc": 0,
+                    "Population": 0,
+                    "bedrooms_per_room": 0,
+                    "population_per_household": 0,
+                    "rooms_per_household": 0,
+                },
+                {
+                    "AveBedrms": 0,
+                    "AveOccup": 0,
+                    "AveRooms": 0,
+                    "HouseAge": 0,
+                    "Latitude": 0,
+                    "Longitude": 0,
+                    "MedInc": 0,
+                    "Population": 0,
+                    "bedrooms_per_room": 0,
+                    "population_per_household": 0,
+                    "rooms_per_household": 0,
+                },
+            ]
+        }
+        response = self.client.post("/batch_predict", json=request_data)
+        expected_status_code = 200
+        self.assertEqual(
+            response.status_code,
+            expected_status_code,
+            f"Expected status code {expected_status_code}, got {response.status_code}. Request data: {request_data}, Response: {response.json()}",
         )
-        self.assertEqual(response.status_code, 200)
 
     def test_validate(self):
-        response = self.client.post(
-            "/validate",
-            json={"data": [[1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0]]},
+        request_data = {
+            "data": [[1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0]]
+        }
+        response = self.client.post("/validate", json=request_data)
+        expected_status_code = 200
+        self.assertEqual(
+            response.status_code,
+            expected_status_code,
+            f"Expected status code {expected_status_code}, got {response.status_code}. Request data: {request_data}, Response: {response.json()}",
         )
-        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)

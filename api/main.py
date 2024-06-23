@@ -29,12 +29,12 @@ class BatchPredictionRequest(BaseModel):
     )
 
 
-api = API(api_key=os.getenv("COMET_API_KEY"))
+api_commet = API(api_key=os.getenv("COMET_API_KEY"))
 
 
 def fetch_model():
     try:
-        model_url = api.get_model(
+        model_url = api_commet.get_model(
             workspace=os.getenv("COMET_WORKSPACE"),
             model_name=os.getenv("COMET_MODEL_NAME"),
         )
