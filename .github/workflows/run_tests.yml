@@ -6,16 +6,6 @@ on:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
-    env:
-      COMET_API_KEY: ${{ secrets.COMET_API_KEY }}
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-      COLLECTION_NAME: ${{ secrets.COLLECTION_NAME }}
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      COMET_WORKSPACE: ${{ secrets.COMET_WORKSPACE }}
-      COMET_MODEL_NAME: ${{ secrets.COMET_MODEL_NAME }}
-      COMET_PROJECT_NAME: ${{ secrets.COMET_PROJECT_NAME }}
-      API_TOKEN: ${{ secrets.API_TOKEN }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -34,5 +24,15 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run all tests
+      env:
+        COMET_API_KEY: ${{ secrets.COMET_API_KEY }}
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+        COLLECTION_NAME: ${{ secrets.COLLECTION_NAME }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        COMET_WORKSPACE: ${{ secrets.COMET_WORKSPACE }}
+        COMET_MODEL_NAME: ${{ secrets.COMET_MODEL_NAME }}
+        COMET_PROJECT_NAME: ${{ secrets.COMET_PROJECT_NAME }}
+        API_TOKEN: ${{ secrets.API_TOKEN }}
       run: |
         pytest tests/
