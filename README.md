@@ -183,6 +183,8 @@ Repita os passos acima para cada um dos secrets mencionados.
     - Abra o terminal e instale o Python 3.9 usando o gerenciador de pacotes da sua distribuição. Por exemplo, no Ubuntu:
       ```bash
       sudo apt update
+      sudo apt install software-properties-common
+      sudo add-apt-repository ppa:deadsnakes/ppa
       sudo apt install python3.9 python3.9-venv python3.9-dev
       ```
     - Verifique a instalação digitando:

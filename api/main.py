@@ -4,9 +4,7 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, ValidationError
 import pandas as pd
-import joblib
 from comet_ml import API
-import requests
 
 load_dotenv()
 
@@ -18,11 +16,17 @@ class ModelSignature(BaseModel):
 
 
 class PredictionRequest(BaseModel):
-    data: dict
+    data: dict = Field(..., example={"feature1": 1.0, "feature2": 2.0})
 
 
 class BatchPredictionRequest(BaseModel):
-    data: list
+    data: list = Field(
+        ...,
+        example=[
+            {"feature1": 1.0, "feature2": 2.0},
+            {"feature1": 3.0, "feature2": 4.0},
+        ],
+    )
 
 
 api = API(api_key=os.getenv("COMET_API_KEY"))
@@ -52,7 +56,19 @@ model = joblib.load(model_path)
 booster = model.get_booster()
 feature_names = booster.feature_names
 print(feature_names)
-# signature = ModelSignature(columns=model_signature["columns"])
+signature = ModelSignature(columns=feature_names)
+
+# Create examples dynamically based on feature names
+example_single = {feature: 0.0 for feature in feature_names}
+example_batch = [{feature: 0.0 for feature in feature_names} for _ in range(2)]
+
+
+class PredictionRequest(BaseModel):
+    data: dict = Field(..., example=example_single)
+
+
+class BatchPredictionRequest(BaseModel):
+    data: list = Field(..., example=example_batch)
 
 
 @app.get("/")
@@ -63,7 +79,14 @@ def read_root():
 @app.post("/predict")
 async def predict(request: PredictionRequest):
     try:
-        data = pd.DataFrame(request.data, columns=feature_names, index=[0])
+        # Ensure the request data keys match the feature names
+        request_data = request.data
+        if set(request_data.keys()) != set(feature_names):
+            raise HTTPException(
+                status_code=400, detail="Invalid features in request data"
+            )
+
+        data = pd.DataFrame([request_data], columns=feature_names)
         predictions = model.predict(data)
         return {"predictions": predictions.tolist()}
 
@@ -77,7 +100,15 @@ async def predict(request: PredictionRequest):
 @app.post("/batch_predict")
 async def batch_predict(request: BatchPredictionRequest):
     try:
-        data = pd.DataFrame(request.data, columns=feature_names)
+        # Ensure each item in request data keys match the feature names
+        request_data = request.data
+        for item in request_data:
+            if set(item.keys()) != set(feature_names):
+                raise HTTPException(
+                    status_code=400, detail="Invalid features in request data"
+                )
+
+        data = pd.DataFrame(request_data, columns=feature_names)
         predictions = model.predict(data)
         return {"predictions": predictions.tolist()}
     except ValidationError as e:
