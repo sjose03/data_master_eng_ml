@@ -13,6 +13,7 @@ jobs:
   call_run_tests:
     needs: call_setup_and_install
     uses: ./.github/workflows/run_tests.yml
+    secrets: inherit
 
   call_train:
     needs: call_run_tests
