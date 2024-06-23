@@ -18,7 +18,9 @@ jobs:
   call_train:
     needs: call_run_tests
     uses: ./.github/workflows/train.yml
+    secrets: inherit
 
   call_deploy:
     needs: call_train
     uses: ./.github/workflows/deploy.yml
+    secrets: inherit
