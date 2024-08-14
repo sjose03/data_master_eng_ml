@@ -1,0 +1,21 @@
+black
+flake8
+ipython 
+isort
+loguru
+mkdocs
+pip
+scikit-learn
+tqdm
+typer
+pandas==2.2.2
+python-dotenv==1.0.1
+requests==2.32.3
+pycountry-convert==0.7.2
+xgboost==2.1.1
+scikit-learn==1.5.1
+seaborn==0.13.2
+mlflow==2.15.1
+matplotlib==3.9.1.post1
+evidently==0.4.35
+-e .
