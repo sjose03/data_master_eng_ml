@@ -1,7 +1,11 @@
 # Data Master: Machine Learning Engineering
 
 Este repositório contém um projeto completo de engenharia de machine learning, focado na coleta, processamento e modelagem de dados da API do IGDB (Internet Game Database). O objetivo do projeto é prever se um jogo terá ou não avaliações, utilizando um modelo de classificação binária. Todo o processo de treinamento é monitorado pelo MLFlow.
-
+```mermaid
+graph TD;
+    A-->B;
+    B-->C;
+```
 ## Sumário
 
 - [Visão Geral](#visão-geral)
