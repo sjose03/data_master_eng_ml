@@ -1,5 +1,5 @@
 import requests
-from .twitch_api import fetch_data_with_pagination, build_query
+from data_master_eng_ml.utils.twitch_api import fetch_data_with_pagination, build_query
 
 # Definindo a URL base da API
 URL_TWITCH_BASE = "https://api.igdb.com/v4"

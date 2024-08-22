@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 from typing import List, Dict, Optional
 
-from utils.auth_twitch import make_authenticated_request
+from data_master_eng_ml.utils.auth_twitch import make_authenticated_request
 
 
 def split_filters(filters: Dict[str, str], max_options: int) -> List[Dict[str, str]]:
@@ -77,19 +77,23 @@ def fetch_data_with_pagination(
     else:
         filter_combinations = [filters]
 
-    for sub_filters in filter_combinations:
+    # for sub_filters in filter_combinations:
         offset, limit = 0, 500
         while True:
-            query = query_builder(fields, sub_filters, limit, offset)
+            query = query_builder(fields, filters, limit, offset)
             response = make_authenticated_request(url, query)
+
             if response.status_code != 200:
                 print(f"Erro ao obter dados: {response.status_code} - {response.text}")
                 break
+
             data = response.json()
             all_data.extend(data)
+
             total_count = int(response.headers.get("x-count", 0))
             if offset + limit >= total_count:
                 break
+
             offset += limit
 
-    return pd.DataFrame(all_data)
+        return pd.DataFrame(all_data)
