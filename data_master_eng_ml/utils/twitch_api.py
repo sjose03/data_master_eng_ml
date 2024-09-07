@@ -1,7 +1,6 @@
-import requests
 import pandas as pd
 from typing import List, Dict, Optional
-
+from loguru import logger
 from data_master_eng_ml.utils.auth_twitch import make_authenticated_request
 
 
@@ -84,7 +83,7 @@ def fetch_data_with_pagination(
         response = make_authenticated_request(url, query)
 
         if response.status_code != 200:
-            print(f"Erro ao obter dados: {response.status_code} - {response.text}")
+            logger.error(f"Erro ao obter dados: {response.status_code} - {response.text}")
             break
 
         data = response.json()

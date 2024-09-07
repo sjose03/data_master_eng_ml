@@ -2,6 +2,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
+import os
 
 # Load environment variables from .env file if it exists
 load_dotenv()
@@ -15,6 +16,11 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 INTERIM_DATA_DIR = DATA_DIR / "interim"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 EXTERNAL_DATA_DIR = DATA_DIR / "external"
+
+TWITCH_ID = os.getenv("TWITCH_ID")
+TWITCH_SECRET = os.getenv("TWITCH_SECRET")
+URL_TWITCH_BASE = "https://api.igdb.com/v4"
+URL_TOKEN = "https://id.twitch.tv/oauth2/token"
 
 MODELS_DIR = PROJ_ROOT / "models"
 

@@ -183,7 +183,8 @@ if games:
 
     # Botão para enviar o ID do jogo selecionado
     if st.button("Enviar ID do Jogo"):
-        send_game_id(selected_game_id)
+        print(selected_game_id)
+        # send_game_id(selected_game_id)
 
 else:
     st.write("Nenhum jogo encontrado para este gênero.")
