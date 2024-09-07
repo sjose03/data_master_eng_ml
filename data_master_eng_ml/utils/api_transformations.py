@@ -1,9 +1,5 @@
-import os
-from dotenv import load_dotenv
 import pandas as pd
-import numpy as np
-import pycountry_convert as pc
-import pycountry
+
 from data_master_eng_ml.utils.twitch_api import build_query, fetch_data_with_pagination
 from data_master_eng_ml.config import URL_TWITCH_BASE
 from data_master_eng_ml.utils.mappings import (
@@ -15,7 +11,11 @@ from data_master_eng_ml.utils.mappings import (
     age_rating_mapping,
     age_order,
 )
-from data_master_eng_ml.utils.helpers import process_companies_data
+from data_master_eng_ml.utils.helpers import (
+    process_companies_data,
+    ensure_columns,
+    process_game_data,
+)
 from typing import Union, List
 import pandas as pd
 
@@ -125,3 +125,124 @@ def fetch_companies_info(company_id_list: List[int]) -> pd.DataFrame:
     data_frame_companies = process_companies_data(data_frame_companies)
 
     return data_frame_companies
+
+
+def fetch_multiplayer_modes(game_id: int) -> pd.DataFrame:
+    """
+    Busca os modos multiplayer disponíveis para um jogo específico na API do IGDB.
+
+    Esta função consulta a API do IGDB para recuperar informações detalhadas sobre os modos multiplayer
+    disponíveis para um jogo identificado pelo seu ID. Os dados incluem informações sobre modos cooperativos,
+    número máximo de jogadores, e se o jogo suporta tela dividida.
+
+    Args:
+        game_id (int): O ID do jogo para o qual as informações de modos multiplayer devem ser buscadas.
+
+    Returns:
+        pd.DataFrame: Um DataFrame contendo as informações dos modos multiplayer, com colunas como
+        'campaigncoop', 'lancoop', 'offlinecoop', 'offlinecoopmax', 'offlinemax', 'onlinecoop',
+        'onlinecoopmax', 'onlinemax', e 'splitscreen'.
+    """
+    url = f"{URL_TWITCH_BASE}/multiplayer_modes"
+    fields = [
+        "campaigncoop",
+        "game",
+        "lancoop",
+        "offlinecoop",
+        "offlinecoopmax",
+        "offlinemax",
+        "onlinecoop",
+        "onlinecoopmax",
+        "onlinemax",
+        "splitscreen",
+    ]
+    filters = {"game": f"= ({game_id})"}
+
+    # Busca dados de modos multiplayer com paginação
+    data_frame_multiplayer_modes = fetch_data_with_pagination(url, build_query, fields, filters)
+
+    # Garante que todas as colunas esperadas estejam presentes no DataFrame
+    data_frame_multiplayer_modes = ensure_columns(data_frame_multiplayer_modes, fields)
+
+    return data_frame_multiplayer_modes
+
+
+def fetch_game_info(game_id: int) -> pd.DataFrame:
+    """
+    Busca informações detalhadas de um jogo específico na API do IGDB.
+
+    Esta função faz uma consulta à API do IGDB para recuperar informações detalhadas sobre um jogo,
+    identificado pelo seu ID. As informações incluem modos de jogo, gêneros, classificações etárias,
+    empresas envolvidas, perspectivas de jogador, plataformas, classificações, e remasterizações.
+
+    Args:
+        game_id (int): O ID do jogo para o qual as informações devem ser buscadas.
+
+    Returns:
+        pd.DataFrame: Um DataFrame contendo as informações detalhadas do jogo, com colunas como 'name',
+        'game_modes', 'genres', 'age_ratings', 'involved_companies', 'player_perspectives',
+        'platforms', 'rating', e 'remasters'.
+    """
+    url = f"{URL_TWITCH_BASE}/games"
+    fields = [
+        "name",
+        "game_modes",
+        "genres",
+        "age_ratings",
+        "involved_companies",
+        "player_perspectives",
+        "platforms",
+        "rating",
+        "remasters",
+    ]
+    filters = {"id": f"= ({game_id})"}
+
+    # Busca dados do jogo com paginação
+    data_frame_games = fetch_data_with_pagination(url, build_query, fields, filters)
+
+    # Garante que todas as colunas esperadas estejam presentes no DataFrame
+    data_frame_games = ensure_columns(data_frame_games, fields)
+
+    # Processa dados do jogo para formatação adicional
+    data_frame_games = process_game_data(data_frame_games)
+
+    return data_frame_games
+
+
+def batch_fetch_age_classifications(age_ratings_list: List[int]) -> pd.DataFrame:
+    """
+    Busca classificações etárias em lotes para reduzir o número de chamadas à API.
+
+    Esta função busca classificações etárias em lotes usando a API do IGDB para evitar múltiplas
+    chamadas desnecessárias. O resultado é um DataFrame que mapeia cada ID de classificação etária
+    para seu grupo correspondente.
+
+    Args:
+        age_ratings_list (List[int]): Lista de IDs de classificações etárias associadas aos jogos.
+
+    Returns:
+        pd.DataFrame: Um DataFrame contendo os IDs de classificação etária e seus respectivos grupos,
+        ou um DataFrame vazio se a lista de IDs for vazia.
+    """
+    # Filtra para apenas os IDs únicos
+    unique_age_ratings = list(set(age_ratings_list))
+
+    if not unique_age_ratings:
+        return pd.DataFrame(columns=["id", "age_rating_group"])
+
+    # Monta a consulta em lote
+    url = f"{URL_TWITCH_BASE}/age_ratings"
+    fields = ["id", "rating"]
+    filters = {"id": f"= ({','.join(map(str, unique_age_ratings))})"}
+
+    # Busca dados de classificações etárias com paginação
+    data_frame = fetch_data_with_pagination(url, build_query, fields, filters)
+
+    # Aplica o mapeamento de classificação etária
+    data_frame["age_rating_group"] = data_frame["rating"].map(age_rating_mapping)
+    data_frame["age_rating_group"] = data_frame["age_rating_group"].astype(age_order)
+
+    # Converte o campo 'id' para string para garantir consistência
+    data_frame["id"] = data_frame["id"].astype(str)
+
+    return data_frame
