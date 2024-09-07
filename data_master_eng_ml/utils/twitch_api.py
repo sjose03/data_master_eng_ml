@@ -78,22 +78,22 @@ def fetch_data_with_pagination(
         filter_combinations = [filters]
 
     # for sub_filters in filter_combinations:
-        offset, limit = 0, 500
-        while True:
-            query = query_builder(fields, filters, limit, offset)
-            response = make_authenticated_request(url, query)
+    offset, limit = 0, 500
+    while True:
+        query = query_builder(fields, filters, limit, offset)
+        response = make_authenticated_request(url, query)
 
-            if response.status_code != 200:
-                print(f"Erro ao obter dados: {response.status_code} - {response.text}")
-                break
+        if response.status_code != 200:
+            print(f"Erro ao obter dados: {response.status_code} - {response.text}")
+            break
 
-            data = response.json()
-            all_data.extend(data)
+        data = response.json()
+        all_data.extend(data)
 
-            total_count = int(response.headers.get("x-count", 0))
-            if offset + limit >= total_count:
-                break
+        total_count = int(response.headers.get("x-count", 0))
+        if offset + limit >= total_count:
+            break
 
-            offset += limit
+        offset += limit
 
-        return pd.DataFrame(all_data)
+    return pd.DataFrame(all_data)

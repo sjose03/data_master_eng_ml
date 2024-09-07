@@ -1,5 +1,6 @@
 import requests
 from data_master_eng_ml.utils.twitch_api import fetch_data_with_pagination, build_query
+import pandas as pd
 
 # Definindo a URL base da API
 URL_TWITCH_BASE = "https://api.igdb.com/v4"
@@ -170,3 +171,20 @@ age_rating_mapping = {
     38: "18+",
     39: "18+",
 }
+
+# Definir uma ordem para os grupos etários
+age_order = pd.CategoricalDtype(
+    categories=[
+        "Rating Pending",
+        "All Ages",
+        "3+",
+        "6+",
+        "10+",
+        "12+",
+        "14+",
+        "15+",
+        "16+",
+        "18+",
+    ],
+    ordered=True,
+)
