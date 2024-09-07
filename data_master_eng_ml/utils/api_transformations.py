@@ -20,7 +20,9 @@ from typing import Union, List
 import pandas as pd
 
 
-def fetch_game_release_dates(single: bool, game_id: int = 0, year: int = 2021) -> pd.DataFrame:
+def fetch_game_release_dates(
+    single: bool, game_id: Union[int, List[int]] = 0, year: int = 2021
+) -> pd.DataFrame:
     """
     Busca as datas de lançamento de jogos da API do IGDB.
 

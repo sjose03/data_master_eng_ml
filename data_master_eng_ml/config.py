@@ -21,6 +21,8 @@ TWITCH_ID = os.getenv("TWITCH_ID")
 TWITCH_SECRET = os.getenv("TWITCH_SECRET")
 URL_TWITCH_BASE = "https://api.igdb.com/v4"
 URL_TOKEN = "https://id.twitch.tv/oauth2/token"
+SINGLE = bool(1)
+YEAR = 2022
 
 MODELS_DIR = PROJ_ROOT / "models"
 

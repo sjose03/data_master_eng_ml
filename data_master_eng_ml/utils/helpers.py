@@ -8,9 +8,6 @@ from data_master_eng_ml.utils.mappings import (
     plataform_mapping,
     player_perspectives_mapping,
     genres_mapping,
-    game_modes_mapping,
-    age_rating_mapping,
-    age_order,
 )
 
 
