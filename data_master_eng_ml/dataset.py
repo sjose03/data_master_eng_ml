@@ -6,108 +6,124 @@ from loguru import logger
 from tqdm import tqdm
 import pandas as pd
 
-from data_master_eng_ml.config import YEAR, SINGLE
-from data_master_eng_ml.utils.api_transformations import (
-    batch_fetch_age_classifications,
-    fetch_companies_info,
-    fetch_game_info,
-    fetch_game_release_dates,
-    fetch_involved_companies,
-    fetch_multiplayer_modes,
+from data_master_eng_ml.config import (
+    YEAR,
+    MONGODB_DATABASE_RAW,
+    INVOLVED_COMPANIES_RAW_COLLECTION,
+    GAME_INFO_RAW_COLLECTION,
+    MULTIPLAYER_MODES_RAW_COLLECTION,
+    GAME_RELEASE_DATES_RAW_COLLECTION,
 )
-from data_master_eng_ml.utils.helpers import generate_dummies, map_age_classifications
+from data_master_eng_ml.transformations.api_raw_data import (
+    fetch_raw_game_release_dates_batch,
+    fetch_raw_game_release_dates_single,
+    fetch_raw_involved_companies,
+    fetch_raw_companies_info,
+    fetch_raw_multiplayer_modes,
+    fetch_raw_game_info,
+)
+from data_master_eng_ml.utils.helpers import save_dataframe_to_mongodb
 
 app = typer.Typer()
 
 
-def game_featurization(single: bool, game_id: int = 0, year: int = 2021):
+from typing import List
+import pandas as pd
+from loguru import logger
+
+
+def ingest_raw_data(year: int = 2021) -> None:
     """
-    Função principal que realiza a featurização do jogo.
+    Ingests raw game data from the IGDB API for a specified year.
+
+    This function retrieves various types of game data from the IGDB API, such as game release dates,
+    involved companies, multiplayer modes, and detailed game information for all games released in a
+    specified year. The data is then saved to a MongoDB database.
+
+    Args:
+        year (int): The year for which to fetch game data. Defaults to 2021.
+
+    Returns:
+        None
     """
-    # Obtém dados de diferentes fontes da API
-    data_frame_games_find = fetch_game_release_dates(single=single, year=year)
-    data_frame_companies_find = fetch_involved_companies(game_id)
-    company_id_list = ",".join(map(str, set(data_frame_companies_find["company"].to_list())))
-    data_frame_companies = fetch_companies_info(company_id_list)
+    logger.info(f"Ingesting raw data for the year: {year}")
 
-    # Processa dados das empresas
-    companies_join = pd.merge(
-        data_frame_companies_find,
-        data_frame_companies,
-        left_on="company",
-        right_on="id",
-        how="inner",
-    )
-    df_companies_final = companies_join[
-        ["game", "games_developed", "has_parents", "games_published", "continent_name"]
-    ]
+    # Fetch game release dates
+    logger.debug("Fetching game release dates batch...")
+    data_frame_games_find_raw_batch = fetch_raw_game_release_dates_batch(year=year)
 
-    # Obtém dados de modos multiplayer
-    data_frame_multiplayer_modes = fetch_multiplayer_modes(game_id)
+    # Get unique game IDs
+    games_id_batch: List[int] = list(set(data_frame_games_find_raw_batch["game"].to_list()))
+    games_id_list_batch: str = ",".join(map(str, games_id_batch))
 
-    # Obtém informações gerais do jogo
-    data_frame_games = fetch_game_info(game_id)
+    # Fetch involved companies data
+    logger.debug("Fetching involved companies batch...")
+    data_frame_companies_find_raw_batch = fetch_raw_involved_companies(games_id_list_batch)
 
-    # Faz o batch fetch das classificações etárias
-    unique_age_ratings = data_frame_games["age_ratings"].explode().dropna().unique().tolist()
-    age_ratings_df = batch_fetch_age_classifications(unique_age_ratings)
-
-    # Mapeia as classificações etárias para o DataFrame de jogos
-    data_frame_games = map_age_classifications(data_frame_games, age_ratings_df)
-
-    # Merge com dados das empresas e modos multiplayer
-    df_companies_games = pd.merge(
-        df_companies_final,
-        data_frame_games_find[["game", "region_name"]].drop_duplicates(subset="game"),
-        on="game",
-        how="inner",
-    )
-    df_companies_games_multiplayer = pd.merge(
-        df_companies_games.drop_duplicates(subset="game"),
-        data_frame_multiplayer_modes[
-            ["game", "onlinecoop", "onlinecoopmax", "onlinemax", "splitscreen"]
-        ],
-        on="game",
-        how="left",
+    # Get unique company IDs
+    company_id_list_batch: List[int] = list(
+        set(data_frame_companies_find_raw_batch["company"].to_list())
     )
 
-    # Combina tudo em um único DataFrame final
-    df_join = (
-        pd.merge(
-            data_frame_games,
-            df_companies_games_multiplayer,
-            left_on="id",
-            right_on="game",
-            how="left",
-        )
-        .drop(columns=["game"])
-        .drop_duplicates(subset="id")
+    # Fetch detailed companies info
+    logger.debug("Fetching detailed companies information...")
+    data_frame_companies_raw_batch = fetch_raw_companies_info(company_id_list_batch)
+
+    # Fetch multiplayer modes
+    logger.debug("Fetching multiplayer modes batch...")
+    data_frame_multiplayer_modes_raw_batch = fetch_raw_multiplayer_modes(games_id_list_batch)
+
+    # Fetch detailed game info
+    logger.debug("Fetching detailed game information batch...")
+    data_frame_games_raw_batch = fetch_raw_game_info(games_id_list_batch)
+
+    # Save data to MongoDB
+    logger.info("Saving game release dates to MongoDB...")
+    save_dataframe_to_mongodb(
+        data_frame_games_find_raw_batch, MONGODB_DATABASE_RAW, GAME_RELEASE_DATES_RAW_COLLECTION
     )
 
-    # Gera variáveis dummy
-    df_join = generate_dummies(
-        df_join, ["platforms_name", "game_modes_name", "player_perspective_name"]
+    logger.info("Saving companies data to MongoDB...")
+    save_dataframe_to_mongodb(
+        data_frame_companies_raw_batch, MONGODB_DATABASE_RAW, INVOLVED_COMPANIES_RAW_COLLECTION
     )
 
-    # Adiciona flag para lançamento global
-    df_join["has_global_launch"] = np.where(df_join["region_name"] == "worldwide", 1, 0)
-    df_join = df_join.drop(columns=["region_name"])
+    logger.info("Saving multiplayer modes to MongoDB...")
+    save_dataframe_to_mongodb(
+        data_frame_multiplayer_modes_raw_batch,
+        MONGODB_DATABASE_RAW,
+        MULTIPLAYER_MODES_RAW_COLLECTION,
+    )
 
-    return df_join
+    logger.info("Saving game information to MongoDB...")
+    save_dataframe_to_mongodb(
+        data_frame_games_raw_batch, MONGODB_DATABASE_RAW, GAME_INFO_RAW_COLLECTION
+    )
+
+    logger.info("Data ingestion completed successfully.")
 
 
 @app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    single: bool = SINGLE,
-    year: int = YEAR,
-    # ----------------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Processing dataset...")
-    game_featurization(single=single, year=year)
+def main(year: int = YEAR) -> None:
+    """
+    Main entry point for the data ingestion process.
+
+    This function calls the ingestion function to fetch and store raw game data
+    for a specified year from the IGDB API and logs the completion of the process.
+
+    Args:
+        year (int): The year for which to ingest game data. Defaults to the value of YEAR constant.
+
+    Returns:
+        None
+    """
+    logger.info(f"Starting data ingestion for the year: {year}")
+
+    # Call the data ingestion function
+    ingest_raw_data(year=year)
+
+    # Log successful completion
     logger.success("Processing dataset complete.")
-    # -----------------------------------------
 
 
 if __name__ == "__main__":

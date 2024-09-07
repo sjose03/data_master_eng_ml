@@ -123,6 +123,9 @@ def fetch_companies_info(company_id_list: List[int]) -> pd.DataFrame:
     # Busca dados de empresas com paginação
     data_frame_companies = fetch_data_with_pagination(url, build_query, fields, filters)
 
+    # Garante que todas as colunas esperadas estejam presentes no DataFrame
+    data_frame_companies = ensure_columns(data_frame_companies, fields)
+
     # Processa dados de empresas
     data_frame_companies = process_companies_data(data_frame_companies)
 

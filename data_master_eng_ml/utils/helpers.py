@@ -1,14 +1,55 @@
 import pycountry_convert as pc
 import pycountry
-from typing import List
+from typing import List, Any
 import pandas as pd
 import numpy as np
+from loguru import logger
+from tqdm import tqdm
+
+from data_master_eng_ml.config import client
 
 from data_master_eng_ml.utils.mappings import (
     plataform_mapping,
     player_perspectives_mapping,
     genres_mapping,
+    game_modes_mapping,
 )
+
+
+def save_dataframe_to_mongodb(
+    df: pd.DataFrame,
+    database_name: str,
+    collection_name: str,
+    chunk_size: int = 1000,
+) -> None:
+    """
+    Saves a Pandas DataFrame to MongoDB with a progress bar.
+
+    :param df: The Pandas DataFrame to be saved
+    :param client: An instance of MongoClient connected to MongoDB
+    :param database_name: The name of the database in MongoDB
+    :param collection_name: The name of the collection in MongoDB
+    :param chunk_size: The number of records to insert per chunk (default: 1000)
+    """
+    try:
+        # Accessing the MongoDB database and collection
+        db: Any = client[database_name]
+        collection: Any = db[collection_name]
+
+        # Convert the DataFrame to a list of dictionaries
+        data_dict: list[dict] = df.to_dict(orient="records")
+
+        # Insert data in chunks with progress bar
+        for i in tqdm(
+            range(0, len(data_dict), chunk_size), desc=f"Uploading to collection {collection_name}"
+        ):
+            chunk = data_dict[i : i + chunk_size]
+            collection.insert_many(chunk)
+
+        logger.info("Data successfully inserted into MongoDB!")
+
+    except Exception as e:
+        logger.error(f"Error inserting data into MongoDB: {e}")
 
 
 def ensure_columns(data_frame, columns):
