@@ -10,6 +10,7 @@ from data_master_eng_ml.config import (
     YEAR,
     MONGODB_DATABASE_RAW,
     INVOLVED_COMPANIES_RAW_COLLECTION,
+    INVOLVED_COMPANIES_LIST_RAW_COLLECTION,
     GAME_INFO_RAW_COLLECTION,
     MULTIPLAYER_MODES_RAW_COLLECTION,
     GAME_RELEASE_DATES_RAW_COLLECTION,
@@ -79,16 +80,28 @@ def ingest_raw_data(year: int = 2021) -> None:
 
     # Save data to MongoDB
     logger.info("Saving game release dates to MongoDB...")
+    data_frame_games_find_raw_batch["dat_ref"] = year
     save_dataframe_to_mongodb(
         data_frame_games_find_raw_batch, MONGODB_DATABASE_RAW, GAME_RELEASE_DATES_RAW_COLLECTION
     )
 
+    logger.info("Saving companies list data to MongoDB...")
+    data_frame_companies_find_raw_batch["dat_ref"] = year
+    save_dataframe_to_mongodb(
+        data_frame_companies_find_raw_batch,
+        MONGODB_DATABASE_RAW,
+        INVOLVED_COMPANIES_LIST_RAW_COLLECTION,
+    )
     logger.info("Saving companies data to MongoDB...")
+    data_frame_companies_raw_batch["dat_ref"] = year
+
     save_dataframe_to_mongodb(
         data_frame_companies_raw_batch, MONGODB_DATABASE_RAW, INVOLVED_COMPANIES_RAW_COLLECTION
     )
 
     logger.info("Saving multiplayer modes to MongoDB...")
+    data_frame_multiplayer_modes_raw_batch["dat_ref"] = year
+
     save_dataframe_to_mongodb(
         data_frame_multiplayer_modes_raw_batch,
         MONGODB_DATABASE_RAW,
@@ -96,6 +109,7 @@ def ingest_raw_data(year: int = 2021) -> None:
     )
 
     logger.info("Saving game information to MongoDB...")
+    data_frame_games_raw_batch["dat_ref"] = year
     save_dataframe_to_mongodb(
         data_frame_games_raw_batch, MONGODB_DATABASE_RAW, GAME_INFO_RAW_COLLECTION
     )

@@ -1,4 +1,3 @@
-import requests
 from data_master_eng_ml.utils.twitch_api import fetch_data_with_pagination, build_query
 import pandas as pd
 

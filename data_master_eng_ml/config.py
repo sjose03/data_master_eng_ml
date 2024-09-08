@@ -23,10 +23,13 @@ URL_TWITCH_BASE = "https://api.igdb.com/v4"
 URL_TOKEN = "https://id.twitch.tv/oauth2/token"
 YEAR = 2022
 MONGODB_DATABASE_RAW = "datamaster_raw"
+MONGODB_DATABASE_SILVER = "datamaster_silver"
 GAME_RELEASE_DATES_RAW_COLLECTION = "game_release_dates_raw"
 INVOLVED_COMPANIES_RAW_COLLECTION = "involved_companies_raw"
+INVOLVED_COMPANIES_LIST_RAW_COLLECTION = "involved_companies_list_raw"
 MULTIPLAYER_MODES_RAW_COLLECTION = "multiplayer_modes_raw"
 GAME_INFO_RAW_COLLECTION = "game_info_raw"
+GAMES_SILVER_COLLECTION = "cleaned_games_info"
 
 MODELS_DIR = PROJ_ROOT / "models"
 

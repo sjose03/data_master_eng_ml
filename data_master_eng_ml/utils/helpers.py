@@ -1,6 +1,6 @@
 import pycountry_convert as pc
 import pycountry
-from typing import List, Any
+from typing import List, Any, Dict
 import pandas as pd
 import numpy as np
 from loguru import logger
@@ -50,6 +50,40 @@ def save_dataframe_to_mongodb(
 
     except Exception as e:
         logger.error(f"Error inserting data into MongoDB: {e}")
+
+
+def read_data_from_mongodb(
+    database_name: str, collection_name: str, query: Dict[str, Any] = {}
+) -> pd.DataFrame:
+    """
+    Reads data from a MongoDB collection and returns it as a Pandas DataFrame.
+
+    :param client: An instance of MongoClient connected to MongoDB
+    :param database_name: The name of the database in MongoDB
+    :param collection_name: The name of the collection in MongoDB
+    :param query: A MongoDB query to filter data (default: {})
+    :return: A Pandas DataFrame containing the data from the MongoDB collection
+    """
+    try:
+        # Accessing the MongoDB database and collection
+        db: Any = client[database_name]
+        collection: Any = db[collection_name]
+
+        # Reading the data from MongoDB
+        cursor = collection.find(query)
+
+        # Converting the cursor to a DataFrame
+        df: pd.DataFrame = pd.DataFrame(list(cursor))
+
+        # Remove MongoDB's default '_id' column if it's not needed
+        if "_id" in df.columns:
+            df.drop("_id", axis=1, inplace=True)
+
+        return df
+
+    except Exception as e:
+        logger.error(f"Error reading data from MongoDB: {e}")
+        return pd.DataFrame()  # Return an empty DataFrame on error
 
 
 def ensure_columns(data_frame, columns):
