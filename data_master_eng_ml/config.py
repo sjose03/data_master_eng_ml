@@ -19,6 +19,7 @@ logger.info(f"PROJ_ROOT path is: {PROJ_ROOT}")
 TWITCH_ID = os.getenv("TWITCH_ID")
 TWITCH_SECRET = os.getenv("TWITCH_SECRET")
 MONGODB_URI = os.getenv("MONGODB_URI")
+DAGSHUB_TOKEN = os.getenv("DAGSHUB_TOKEN")
 URL_TWITCH_BASE = "https://api.igdb.com/v4"
 URL_TOKEN = "https://id.twitch.tv/oauth2/token"
 YEAR = 2022
