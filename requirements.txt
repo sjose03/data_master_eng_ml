@@ -23,4 +23,5 @@ setuptools==74.1.2
 lightgbm==4.5.0
 imbalanced-learn==0.12.3
 mongomock
+pre-commit
 -e .
