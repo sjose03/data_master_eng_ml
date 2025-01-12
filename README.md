@@ -1,11 +1,14 @@
 # Data Master: Machine Learning Engineering
 
 Este repositório contém um projeto completo de engenharia de machine learning, focado na coleta, processamento e modelagem de dados da API do IGDB (Internet Game Database). O objetivo do projeto é prever se um jogo terá ou não avaliações, utilizando um modelo de classificação binária. Todo o processo de treinamento é monitorado pelo MLFlow.
+
 ```mermaid
 graph TD;
-    A-->B;
-    B-->C;
+    A[Coleta de Dados] --> B[Ingestão no MongoDB];
+    B --> C[Treinamento do Modelo];
+    C --> D[Monitoramento com MLFlow];
 ```
+
 ## Sumário
 
 - [Visão Geral](#visão-geral)
@@ -51,61 +54,97 @@ data_master_eng_ml/
 ├── README.md                         # Este README
 └── requirements.txt                  # Dependências Python necessárias
 ```
+
 ## Instalação
 
 ### Pré-requisitos
 
-- Python 3.10
-- MongoDB
-- API Key do IGDB
-- MLFlow
+- **Python 3.10**
+- **MongoDB**
+- **API Key do IGDB**
+- **MLFlow**
 
 ### Passos
 
-1. Clone este repositório:
+1. Clone o repositório:
 
     ```bash
     git clone https://github.com/sjose03/data_master_eng_ml.git
     cd data_master_eng_ml
     ```
 
+2. Instale as ferramentas necessárias:
 
-2 Instalar o pipx
+    - **Instale o pipx**
+        - [Guia oficial de instalação do pipx](https://pipx.pypa.io/stable/)
+        - Comando de instalação:
 
-https://pipx.pypa.io/stable/
+            ```bash
+            python3 -m pip install --user pipx
+            python3 -m pipx ensurepath
+            ```
 
+    - **Instale o pipenv**
+        - [Guia oficial de instalação do pipenv](https://pipenv.pypa.io/en/latest/installation.html)
+        - Comando de instalação:
 
-2. Instalar o pipenv
-    https://pipenv.pypa.io/en/latest/installation.html
+            ```bash
+            pipx install pipenv
+            ```
 
-    pipx install pipenv 
+    - **Instale o pyenv**
+        - [Guia oficial de instalação do pyenv](https://github.com/pyenv/pyenv)
+        - Comando de instalação:
 
-    Instalar o pyenv
+            ```bash
+            curl https://pyenv.run | bash
+            ```
 
-    https://github.com/pyenv/pyenv (faz a gestao das versoes python)
+    - **Dependências adicionais no WSL**
+        - Necessário apenas no WSL.
+        - Comando de instalação:
 
-    (Para WSL sudo apt-get install  libffi-dev libssl-dev libreadline-dev libbz2-dev libsqlite3-dev lzma liblzma-dev libbz2-dev python3-tk)
+            ```bash
+            sudo apt-get install libffi-dev libssl-dev libreadline-dev \
+            libbz2-dev libsqlite3-dev lzma liblzma-dev python3-tk
+            ```
 
-    pyenv install 3.10
+3. Configure o ambiente Python:
 
-    make create_environment (cria o ambiente)
+    - Instale a versão do Python:
 
-    pipenv shell - Ativa o Ambiente criado.
+        ```bash
+        pyenv install 3.10
+        ```
 
-    make requirements
+    - Crie o ambiente com o `Makefile`:
 
+        ```bash
+        make create_environment
+        ```
 
-3. Configure sua API Key do IGDB e o MongoDB conforme necessário.
+    - Ative o ambiente:
 
+        ```bash
+        pipenv shell
+        ```
 
-    API IGDB 
-    https://dev.twitch.tv/console/apps/create
+    - Instale os requisitos do projeto:
 
-    Recuperar de lá o ID e a Secret
+        ```bash
+        make requirements
+        ```
 
-    Criar um arquivo .env na raiz do projeto, com as variaveis de ambiente
-    TWITCH_ID=(com o valor da sua secret)
-    TWITCH_SECRET=(com o valor da sua secret)
+4. Configure suas variáveis de ambiente:
+
+    - Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+
+        ```env
+        TWITCH_ID=<sua_twitch_id>
+        TWITCH_SECRET=<sua_twitch_secret>
+        MONGODB_URI=<sua_uri_mongodb>
+        DAGSHUB_TOKEN=<seu_token_dagshub>
+        ```
 
 ## Uso
 
