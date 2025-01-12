@@ -1,8 +1,11 @@
 import pandas as pd
 
-from data_master_eng_ml.utils import (
+from data_master_eng_ml.utils.api_igdb import (
     build_query,
     fetch_data_with_pagination,
+)
+
+from data_master_eng_ml.utils.mappings import (
     age_rating_mapping,
     age_order,
 )

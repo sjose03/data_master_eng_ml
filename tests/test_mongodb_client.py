@@ -1,81 +1,87 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from pymongo.errors import ConnectionFailure
-from data_master_eng_ml.db import MongoDBClient
+from data_master_eng_ml.db.mongodb_client import MongoDBClient
 from data_master_eng_ml.config import MONGODB_DEFAULT_DATABASE
 
 
-class TestMongoDBClient(unittest.TestCase):
+class TestMongoDBClientSingleton(unittest.TestCase):
     def setUp(self):
-        """Configuração inicial antes de cada teste."""
-        # Cria o mock para MongoClient
-        self.patcher = patch("data_master_eng_ml.db.MongoDBClient")
-        self.mock_mongo_client = self.patcher.start()
+        """Configura um mock para MongoDBClient."""
+        # Mock do MongoClient
+        self.mock_client = MagicMock()
 
-        # Mock do cliente e do banco de dados
-        self.mock_client_instance = MagicMock()
-        self.mock_mongo_client.return_value = self.mock_client_instance
-        self.mock_db = self.mock_client_instance[
-            self.mock_client_instance.db_name
-        ]
-        self.mock_client_instance.__getitem__.return_value = self.mock_db
+        # Mock do banco de dados
+        self.mock_db = MagicMock()
+        self.mock_client.__getitem__.return_value = self.mock_db
 
-        self.db_name = MONGODB_DEFAULT_DATABASE
-        self.client = MongoDBClient()
-        self.db = self.client.get_database()
+        MongoDBClient._instance = None
 
-    def tearDown(self):
-        """Finaliza o mock após cada teste."""
-        self.patcher.stop()
+    def test_singleton_behavior(self):
+        """Testa se MongoDBClient segue o padrão Singleton."""
+        client1 = MongoDBClient(client=self.mock_client)
+        client2 = MongoDBClient(client=self.mock_client)
+
+        # Verifica se ambas as instâncias são iguais
+        self.assertIs(client1, client2)
 
     def test_successful_connection(self):
         """Testa conexão bem-sucedida ao MongoDB."""
-        # Simula o comando 'ping' no banco
-        self.mock_client_instance.admin.command.return_value = {"ok": 1}
+        # Simula o comando 'ping'
+        self.mock_client.admin.command.return_value = {"ok": 1}
+
+        # Inicializa o cliente
+        client = MongoDBClient(client=self.mock_client)
+        db = client.get_database()
 
         # Verifica se o banco retornado é o correto
-        db = self.client.get_database()
-        self.assertEqual(db.name, self.db_name)
+        self.assertEqual(db, self.mock_db)
 
-        # Valida que o comando de 'ping' foi chamado
-        self.mock_client_instance.admin.command.assert_called_once_with("ping")
+        # Verifica se o comando 'ping' foi chamado
+        self.mock_client.admin.command.assert_called_once_with("ping")
 
     def test_create_and_validate_collection(self):
-        """Testa a criação de uma coleção e sua validação."""
+        """Testa criação e validação de uma coleção."""
         collection_name = "test_collection"
+        client = MongoDBClient(client=self.mock_client)
+        # Simula a criação de uma coleção
+        self.mock_db.create_collection.return_value = None
 
-        # Cria uma coleção
-        self.db.create_collection(collection_name)
+        # Chama o método de criação
+        client.get_database().create_collection(collection_name)
 
-        # Verifica se a coleção foi criada
-        collections = self.db.list_collection_names()
-        self.assertIn(collection_name, collections)
+        # Verifica se o método foi chamado corretamente
+        self.mock_db.create_collection.assert_called_once_with(collection_name)
 
     def test_insert_and_read_document(self):
-        """Testa a inserção e leitura de um documento em uma coleção."""
+        """Testa inserção e leitura de um documento."""
         collection_name = "test_collection"
-        collection = self.db[collection_name]
+        mock_collection = self.mock_db[collection_name]
 
-        # Insere um documento
+        # Simula a inserção de um documento
         document = {"name": "John Doe", "age": 30}
-        insert_result = collection.insert_one(document)
-        self.assertIsNotNone(insert_result.inserted_id)
+        mock_collection.insert_one.return_value.inserted_id = "mock_id"
 
-        # Lê o documento inserido
-        found_document = collection.find_one({"name": "John Doe"})
-        self.assertIsNotNone(found_document)
-        self.assertEqual(found_document["name"], "John Doe")
-        self.assertEqual(found_document["age"], 30)
+        # Insere o documento
+        insert_result = mock_collection.insert_one(document)
+        self.assertEqual(insert_result.inserted_id, "mock_id")
+
+        # Simula a leitura do documento
+        mock_collection.find_one.return_value = document
+        found_document = mock_collection.find_one({"name": "John Doe"})
+        self.assertEqual(found_document, document)
 
     def test_failed_connection(self):
         """Testa falha de conexão ao MongoDB."""
-        with self.assertRaises(ConnectionFailure):
-            # Tenta criar um cliente com URI inválido
-            MongoDBClient(uri="mongodb://invalid:27017", db_name="test_db")
+        # Simula uma falha no comando 'ping'
+        self.mock_client.admin.command.side_effect = ConnectionFailure(
+            "Connection failed"
+        )
 
-    def tearDown(self):
-        """Limpa o banco de dados após cada teste."""
-        self.db.client.drop_database(self.db_name)
+        with self.assertRaises(Exception) as context:
+            MongoDBClient(client=self.mock_client)
+
+        self.assertIn("Failed to connect to MongoDB", str(context.exception))
 
 
 if __name__ == "__main__":

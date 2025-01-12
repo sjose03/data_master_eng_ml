@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from requests.exceptions import RequestException
-from data_master_eng_ml.utils import (
+from data_master_eng_ml.utils.auth_igdb import (
     IGDBAuthenticatedClient,
     Token,
     TokenRequestException,

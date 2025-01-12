@@ -7,7 +7,7 @@ from loguru import logger
 from tqdm import tqdm
 
 
-from data_master_eng_ml.db import MongoDBClient
+from data_master_eng_ml.db.mongodb_client import MongoDBClient
 
 from .mappings import (
     plataform_mapping,
