@@ -65,14 +65,37 @@ data_master_eng_ml/
     cd data_master_eng_ml
     ```
 
-2. Instale as dependências:
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+2 Instalar o pipx
+
+https://pipx.pypa.io/stable/
+
+
+2. Instalar o pipenv
+    https://pipenv.pypa.io/en/latest/installation.html
+
+    pipx install pipenv 
+
+    Instalar o pyenv
+
+    https://github.com/pyenv/pyenv (faz a gestao das versoes python)
+
+    (Para WSL sudo apt-get install  libffi-dev libssl-dev libreadline-dev libbz2-dev libsqlite3-dev lzma liblzma-dev libbz2-dev python3-tk)
+
+    pyenv install 3.10
+
+    make create_environment (cria o ambiente)
+
+    pipenv shell - Ativa o Ambiente criado.
+
+    make requirements
+
 
 3. Configure sua API Key do IGDB e o MongoDB conforme necessário.
 
+
+    API IGDB 
+    https://dev.twitch.tv/console/apps/create
 
 ## Uso
 
