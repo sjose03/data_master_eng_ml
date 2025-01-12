@@ -1,22 +1,49 @@
+from matplotlib import pyplot as plt
 import mlflow
 import mlflow.sklearn
 import xgboost as xgb
 import lightgbm as lgb
+import seaborn as sns
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score, accuracy_score
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    roc_auc_score,
+    accuracy_score,
+)
 from sklearn.base import BaseEstimator
 import pandas as pd
 import os
 
-from visualization.plot_utils import (
+from data_master_eng_ml.visualization.plot_utils import (
     generate_and_log_plots,
 )
 
 
-def log_data_and_plots(
-    X_train, y_train, X_test, y_test, model, experiment_name, algorithm
-):
+# Reutilizando a função evaluate_model para calcular as métricas
+def evaluate_model(y_true, y_pred, y_pred_proba):
+    accuracy = accuracy_score(y_true, y_pred)
+    roc_auc = roc_auc_score(y_true, y_pred_proba)
+    f1 = f1_score(y_true, y_pred)
+    classification_rep = classification_report(y_true, y_pred)
+    conf_matrix = confusion_matrix(y_true, y_pred)
+
+    print(f"Acurácia: {accuracy}")
+    print(f"ROC AUC: {roc_auc}")
+    print(f"F1 Score: {f1}")
+    print("Relatório de Classificação:\n", classification_rep)
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues")
+    plt.title("Matriz de Confusão")
+    plt.xlabel("Predito")
+    plt.ylabel("Verdadeiro")
+    plt.show()
+
+
+def log_data_and_plots(X_train, y_train, X_test, y_test, model, experiment_name, algorithm):
     """
     Loga os dados e os gráficos (Matriz de Confusão, AUC-ROC) no MLflow.
 
@@ -86,7 +113,8 @@ def train_model(
     experiment_name = f"{algorithm}_model{'_with_smote' if use_smote else ''}"
     mlflow.set_experiment(experiment_name)
 
-    with mlflow.start_run(run_name=experiment_name):
+    with mlflow.start_run(run_name=experiment_name) as run:
+        mlflow.autolog(log_input_examples=True)
         if use_smote:
             # Aplicar SMOTE para lidar com o desbalanceamento
             smote = SMOTE(random_state=42)
@@ -112,9 +140,7 @@ def train_model(
             mlflow.log_metric("roc_auc_train", train_auc)
 
         elif algorithm == "lightgbm":
-            model, model_params = train_lightgbm(
-                X_train, y_train, X_test, y_test, params
-            )
+            model, model_params = train_lightgbm(X_train, y_train, X_test, y_test, params)
             y_train_pred_proba = model.predict_proba(X_train)[:, 1]
             y_train_pred = model.predict(X_train)
             train_auc = roc_auc_score(y_train, y_train_pred_proba)
@@ -129,15 +155,14 @@ def train_model(
             y_test_pred = (y_test_pred_proba > 0.5).astype(int)
         else:
             y_test_pred_proba = (
-                model.predict_proba(X_test)[:, 1]
-                if hasattr(model, "predict_proba")
-                else None
+                model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else None
             )
             y_test_pred = model.predict(X_test)
 
         if y_test_pred_proba is not None:
             test_auc = roc_auc_score(y_test, y_test_pred_proba)
             mlflow.log_metric("roc_auc_test", test_auc)
+            mlflow.end_run()
 
         # Logar a acurácia no conjunto de teste
         test_accuracy = accuracy_score(y_test, y_test_pred)
@@ -145,12 +170,10 @@ def train_model(
 
         # Logar parâmetros e modelo no MLflow
         mlflow.log_params(model_params)
-        mlflow.sklearn.log_model(model, f"{algorithm}_model")
+        # mlflow.sklearn.log_model(model, f"{algorithm}_model")
 
         # Logar os dados e os gráficos
-        log_data_and_plots(
-            X_train, y_train, X_test, y_test, model, experiment_name, algorithm
-        )
+        log_data_and_plots(X_train, y_train, X_test, y_test, model, experiment_name, algorithm)
 
         return model
 
@@ -233,9 +256,7 @@ def predict_model(model: BaseEstimator, X_test, algorithm):
     else:
         y_test_pred = model.predict(X_test)
         y_test_pred_proba = (
-            model.predict_proba(X_test)[:, 1]
-            if hasattr(model, "predict_proba")
-            else None
+            model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else None
         )
 
     return y_test_pred, y_test_pred_proba
