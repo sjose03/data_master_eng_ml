@@ -15,4 +15,4 @@ repos:
         require_serial: true
         types_or: [ python, pyi ]
         args: [ --fix]
-        stages: [commit, manual]
+        stages: [pre-commit, manual]
