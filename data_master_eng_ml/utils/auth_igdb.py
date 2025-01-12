@@ -90,6 +90,16 @@ class IGDBAuthenticatedClient:
                 self.get_token()
                 headers = self._get_headers()
                 response = requests.post(url, headers=headers, data=data)
+                if response.status_code == 200:
+                    response.raise_for_status()
+                    return response
+                else:
+                    logger.error(
+                        f"Erro na requisição autenticada: {response.status_code} - {response.text}"
+                    )
+                raise TokenRequestException(
+                    f"Erro na requisição autenticada: {response.status_code} - {response.text}"
+                )
             elif response.status_code == 200:
                 response.raise_for_status()
                 return response
