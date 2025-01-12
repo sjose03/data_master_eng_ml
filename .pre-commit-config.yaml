@@ -1,12 +1,4 @@
 repos:
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  # Ruff version.
-  rev: v0.9.1
-  hooks:
-    # Run the linter.
-    - id: ruff
-    # Run the formatter.
-    - id: ruff-format
 - repo: local
   hooks:
       - id: unittests
@@ -15,3 +7,12 @@ repos:
         language: system
         pass_filenames: false
         args: ["discover"]
+      - id: ruff # Linter
+        name: ruff
+        description: "Run 'ruff' for extremely fast Python linting"
+        entry: ruff check --force-exclude
+        language: system
+        require_serial: true
+        types_or: [ python, pyi ]
+        args: [ --fix]
+        stages: [commit, manual]
