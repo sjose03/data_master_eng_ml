@@ -9,7 +9,6 @@ from data_master_eng_ml.utils.auth_igdb import (
 
 
 class TestIGDBAuth(unittest.TestCase):
-
     def setUp(self):
         """Configura um cliente com valores padrão antes de cada teste."""
         self.client = IGDBAuthenticatedClient(
@@ -102,9 +101,7 @@ class TestIGDBAuth(unittest.TestCase):
         mock_post.return_value = mock_response
 
         with self.assertRaises(TokenRequestException) as context:
-            self.client.make_authenticated_request(
-                "http://mock_url", {"key": "value"}
-            )
+            self.client.make_authenticated_request("http://mock_url", {"key": "value"})
 
         self.assertIn("Erro na requisição autenticada", str(context.exception))
         self.assertIn("500", str(context.exception))

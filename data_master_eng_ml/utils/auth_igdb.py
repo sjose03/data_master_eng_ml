@@ -77,9 +77,7 @@ class IGDBAuthenticatedClient:
             self.get_token()
         return self.token.access_token
 
-    def make_authenticated_request(
-        self, url: str, data: Dict
-    ) -> requests.Response:
+    def make_authenticated_request(self, url: str, data: Dict) -> requests.Response:
         """Faz uma requisição autenticada."""
         try:
             headers = self._get_headers()

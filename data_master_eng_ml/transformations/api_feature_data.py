@@ -99,9 +99,7 @@ def fetch_game_info_features(data_frame_games: pd.DataFrame) -> pd.DataFrame:
 
     age_ratings_df = batch_fetch_age_classifications(unique_age_ratings)
 
-    data_frame_games = map_age_classifications(
-        data_frame_games, age_ratings_df
-    )
+    data_frame_games = map_age_classifications(data_frame_games, age_ratings_df)
 
     logger.info("Game information processed successfully.")
     logger.debug("Returning the processed DataFrame.")
@@ -180,9 +178,7 @@ def complete_game_infos(
     # Merge with company data and multiplayer modes
     df_companies_games = pd.merge(
         df_companies_final,
-        data_frame_games_find[["game", "region_name"]].drop_duplicates(
-            subset="game"
-        ),
+        data_frame_games_find[["game", "region_name"]].drop_duplicates(subset="game"),
         on="game",
         how="inner",
     )
@@ -224,9 +220,7 @@ def complete_game_infos(
     logger.debug("Generated dummy variables for categorical data.")
 
     # Add a flag for worldwide release
-    df_join["has_global_launch"] = np.where(
-        df_join["region_name"] == "worldwide", 1, 0
-    )
+    df_join["has_global_launch"] = np.where(df_join["region_name"] == "worldwide", 1, 0)
     df_join = df_join.drop(columns=["region_name"])
 
     logger.info("Final game information DataFrame created successfully.")

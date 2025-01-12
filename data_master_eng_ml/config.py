@@ -14,9 +14,7 @@ logger.info(f"Diretório raiz do projeto: {PROJ_ROOT}")
 # Variáveis de ambiente necessárias
 TWITCH_ID = os.getenv("TWITCH_ID")
 TWITCH_SECRET = os.getenv("TWITCH_SECRET")
-MONGODB_URI = os.getenv(
-    "MONGODB_URI", "mongodb://root:example@localhost:27017/"
-)
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://root:example@localhost:27017/")
 DAGSHUB_TOKEN = os.getenv("DAGSHUB_TOKEN")
 
 # URLs e constantes do projeto

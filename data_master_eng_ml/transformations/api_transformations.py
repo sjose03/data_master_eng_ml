@@ -46,12 +46,8 @@ def batch_fetch_age_classifications(
     data_frame = fetch_data_with_pagination(url, build_query, fields, filters)
 
     # Aplica o mapeamento de classificação etária
-    data_frame["age_rating_group"] = data_frame["rating"].map(
-        age_rating_mapping
-    )
-    data_frame["age_rating_group"] = data_frame["age_rating_group"].astype(
-        age_order
-    )
+    data_frame["age_rating_group"] = data_frame["rating"].map(age_rating_mapping)
+    data_frame["age_rating_group"] = data_frame["age_rating_group"].astype(age_order)
 
     # Converte o campo 'id' para string para garantir consistência
     data_frame["id"] = data_frame["id"].astype(str)

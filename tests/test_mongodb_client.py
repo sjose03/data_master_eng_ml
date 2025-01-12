@@ -1,8 +1,7 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 from pymongo.errors import ConnectionFailure
 from data_master_eng_ml.db.mongodb_client import MongoDBClient
-from data_master_eng_ml.config import MONGODB_DEFAULT_DATABASE
 
 
 class TestMongoDBClientSingleton(unittest.TestCase):

@@ -26,9 +26,7 @@ def get_mapping_from_api(endpoint: str, fields: list) -> dict:
 
 
 # Mapeamentos obtidos via API
-player_perspectives_mapping = get_mapping_from_api(
-    "player_perspectives", ["slug"]
-)
+player_perspectives_mapping = get_mapping_from_api("player_perspectives", ["slug"])
 genres_mapping = get_mapping_from_api("genres", ["slug"])
 game_modes_mapping = get_mapping_from_api("game_modes", ["slug"])
 
