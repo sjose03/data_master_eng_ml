@@ -1,14 +1,12 @@
 import pandas as pd
 
-from data_master_eng_ml.utils.twitch_api import (
+from data_master_eng_ml.utils import (
     build_query,
     fetch_data_with_pagination,
-)
-from data_master_eng_ml.config import URL_TWITCH_BASE
-from data_master_eng_ml.utils.mappings import (
     age_rating_mapping,
     age_order,
 )
+from data_master_eng_ml.config import URL_TWITCH_BASE
 
 from typing import List
 
@@ -45,8 +43,12 @@ def batch_fetch_age_classifications(
     data_frame = fetch_data_with_pagination(url, build_query, fields, filters)
 
     # Aplica o mapeamento de classificação etária
-    data_frame["age_rating_group"] = data_frame["rating"].map(age_rating_mapping)
-    data_frame["age_rating_group"] = data_frame["age_rating_group"].astype(age_order)
+    data_frame["age_rating_group"] = data_frame["rating"].map(
+        age_rating_mapping
+    )
+    data_frame["age_rating_group"] = data_frame["age_rating_group"].astype(
+        age_order
+    )
 
     # Converte o campo 'id' para string para garantir consistência
     data_frame["id"] = data_frame["id"].astype(str)

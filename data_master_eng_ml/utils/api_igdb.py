@@ -1,7 +1,10 @@
 import pandas as pd
 from typing import List, Dict, Optional
 from loguru import logger
-from data_master_eng_ml.utils.auth_igdb import make_authenticated_request
+from data_master_eng_ml.utils.auth_igdb import IGDBAuthenticatedClient
+
+
+client = IGDBAuthenticatedClient()
 
 
 def split_filters(
@@ -87,7 +90,7 @@ def fetch_data_with_pagination(
     offset, limit = 0, 500
     while True:
         query = query_builder(fields, filters, limit, offset)
-        response = make_authenticated_request(url, query)
+        response = client.make_authenticated_request(url, query)
 
         if response.status_code != 200:
             logger.error(

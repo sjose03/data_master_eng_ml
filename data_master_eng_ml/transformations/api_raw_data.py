@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_master_eng_ml.utils.twitch_api import (
+from data_master_eng_ml.utils.api_igdb import (
     build_query,
     fetch_data_with_pagination,
 )
@@ -99,7 +99,9 @@ def fetch_raw_game_release_dates_batch(year: int = 2021) -> pd.DataFrame:
     return data_frame_games_find
 
 
-def fetch_raw_involved_companies(game_id: Union[int, List[int]]) -> pd.DataFrame:
+def fetch_raw_involved_companies(
+    game_id: Union[int, List[int]]
+) -> pd.DataFrame:
     """
     Fetches the companies involved in the development and publishing of a game from the IGDB API.
 
@@ -130,7 +132,9 @@ def fetch_raw_involved_companies(game_id: Union[int, List[int]]) -> pd.DataFrame
     return data_frame_companies_find
 
 
-def fetch_raw_companies_info(company_id_list: Union[int, List[int]]) -> pd.DataFrame:
+def fetch_raw_companies_info(
+    company_id_list: Union[int, List[int]]
+) -> pd.DataFrame:
     """
     Fetches detailed information about companies involved in the development and publishing of games from the IGDB API.
 
@@ -145,7 +149,9 @@ def fetch_raw_companies_info(company_id_list: Union[int, List[int]]) -> pd.DataF
         pd.DataFrame: A DataFrame containing detailed information about the companies, such as
         games developed and published, country of origin, operation start dates, and parent company information.
     """
-    logger.info(f"Fetching information for companies with IDs: {len(company_id_list)}")
+    logger.info(
+        f"Fetching information for companies with IDs: {len(company_id_list)}"
+    )
 
     url = f"{URL_TWITCH_BASE}/companies"
     fields = [
@@ -157,10 +163,14 @@ def fetch_raw_companies_info(company_id_list: Union[int, List[int]]) -> pd.DataF
         "start_date_category",
         "parent",
     ]
-    filters: Dict[str, str] = {"id": f"= ({','.join(map(str, company_id_list))})"}
+    filters: Dict[str, str] = {
+        "id": f"= ({','.join(map(str, company_id_list))})"
+    }
 
     logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_companies = fetch_data_with_pagination(url, build_query, fields, filters)
+    data_frame_companies = fetch_data_with_pagination(
+        url, build_query, fields, filters
+    )
 
     logger.success("Data fetched successfully.")
 
@@ -172,7 +182,9 @@ def fetch_raw_companies_info(company_id_list: Union[int, List[int]]) -> pd.DataF
     return data_frame_companies_raw
 
 
-def fetch_raw_multiplayer_modes(game_id: Union[int, List[int]]) -> pd.DataFrame:
+def fetch_raw_multiplayer_modes(
+    game_id: Union[int, List[int]]
+) -> pd.DataFrame:
     """
     Fetches available multiplayer modes for a specific game from the IGDB API.
 
@@ -214,7 +226,9 @@ def fetch_raw_multiplayer_modes(game_id: Union[int, List[int]]) -> pd.DataFrame:
 
     # Ensure that all expected columns are present in the DataFrame
     logger.debug("Ensuring all expected columns are present in the DataFrame.")
-    data_frame_multiplayer_modes = ensure_columns(data_frame_multiplayer_modes, fields)
+    data_frame_multiplayer_modes = ensure_columns(
+        data_frame_multiplayer_modes, fields
+    )
 
     logger.debug("Returning the processed DataFrame.")
     return data_frame_multiplayer_modes
@@ -253,7 +267,9 @@ def fetch_raw_game_info(game_id: Union[int, List[int]]) -> pd.DataFrame:
     filters: Dict[str, str] = {"id": f"= ({game_id})"}
 
     logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_games = fetch_data_with_pagination(url, build_query, fields, filters)
+    data_frame_games = fetch_data_with_pagination(
+        url, build_query, fields, filters
+    )
 
     logger.info("Data fetched successfully.")
 

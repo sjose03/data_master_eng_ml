@@ -8,15 +8,13 @@ from loguru import logger
 class MongoDBClient:
     _instance = None
 
-    def __new__(cls, uri="mongodb://localhost:27017", db_name="default_db"):
+    def __new__(cls, uri="mongodb://localhost:27017"):
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            cls._instance._initialize(uri, db_name)
         return cls._instance
 
     def _initialize(self, uri, db_name):
         self._uri = uri
-        self._db_name = db_name
         self._client = MongoClient(self._uri, server_api=ServerApi("1"))
         try:
             self._client.admin.command(
