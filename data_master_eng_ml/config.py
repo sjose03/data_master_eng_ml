@@ -2,8 +2,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from loguru import logger
 import os
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
+
 
 # Carregar variáveis de ambiente do arquivo .env, se existir
 load_dotenv()
@@ -37,15 +36,6 @@ MODELS_DIR = PROJ_ROOT / "models"
 REPORTS_DIR = PROJ_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
-# Configuração do cliente MongoDB
-try:
-    # Inicializa o cliente MongoDB com o URI fornecido
-    client = MongoClient(MONGODB_URI, server_api=ServerApi("1"))
-    # Testa a conexão enviando um comando "ping"
-    client.admin.command("ping")
-    logger.debug("Conexão bem-sucedida ao MongoDB!")
-except Exception as e:
-    logger.error(f"Erro ao conectar ao MongoDB: {e}")
 
 # Integração do loguru com tqdm (se tqdm estiver instalado)
 try:
