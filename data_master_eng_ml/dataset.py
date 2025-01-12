@@ -1,10 +1,6 @@
-from pathlib import Path
-
-import numpy as np
 import typer
 from loguru import logger
-from tqdm import tqdm
-import pandas as pd
+
 
 from data_master_eng_ml.config import (
     YEAR,
@@ -17,7 +13,6 @@ from data_master_eng_ml.config import (
 )
 from data_master_eng_ml.transformations.api_raw_data import (
     fetch_raw_game_release_dates_batch,
-    fetch_raw_game_release_dates_single,
     fetch_raw_involved_companies,
     fetch_raw_companies_info,
     fetch_raw_multiplayer_modes,
@@ -29,7 +24,6 @@ app = typer.Typer()
 
 
 from typing import List
-import pandas as pd
 from loguru import logger
 
 
@@ -51,15 +45,21 @@ def ingest_raw_data(year: int = 2021) -> None:
 
     # Fetch game release dates
     logger.debug("Fetching game release dates batch...")
-    data_frame_games_find_raw_batch = fetch_raw_game_release_dates_batch(year=year)
+    data_frame_games_find_raw_batch = fetch_raw_game_release_dates_batch(
+        year=year
+    )
 
     # Get unique game IDs
-    games_id_batch: List[int] = list(set(data_frame_games_find_raw_batch["game"].to_list()))
+    games_id_batch: List[int] = list(
+        set(data_frame_games_find_raw_batch["game"].to_list())
+    )
     games_id_list_batch: str = ",".join(map(str, games_id_batch))
 
     # Fetch involved companies data
     logger.debug("Fetching involved companies batch...")
-    data_frame_companies_find_raw_batch = fetch_raw_involved_companies(games_id_list_batch)
+    data_frame_companies_find_raw_batch = fetch_raw_involved_companies(
+        games_id_list_batch
+    )
 
     # Get unique company IDs
     company_id_list_batch: List[int] = list(
@@ -68,11 +68,15 @@ def ingest_raw_data(year: int = 2021) -> None:
 
     # Fetch detailed companies info
     logger.debug("Fetching detailed companies information...")
-    data_frame_companies_raw_batch = fetch_raw_companies_info(company_id_list_batch)
+    data_frame_companies_raw_batch = fetch_raw_companies_info(
+        company_id_list_batch
+    )
 
     # Fetch multiplayer modes
     logger.debug("Fetching multiplayer modes batch...")
-    data_frame_multiplayer_modes_raw_batch = fetch_raw_multiplayer_modes(games_id_list_batch)
+    data_frame_multiplayer_modes_raw_batch = fetch_raw_multiplayer_modes(
+        games_id_list_batch
+    )
 
     # Fetch detailed game info
     logger.debug("Fetching detailed game information batch...")
@@ -82,7 +86,9 @@ def ingest_raw_data(year: int = 2021) -> None:
     logger.info("Saving game release dates to MongoDB...")
     data_frame_games_find_raw_batch["dat_ref"] = year
     save_dataframe_to_mongodb(
-        data_frame_games_find_raw_batch, MONGODB_DATABASE_RAW, GAME_RELEASE_DATES_RAW_COLLECTION
+        data_frame_games_find_raw_batch,
+        MONGODB_DATABASE_RAW,
+        GAME_RELEASE_DATES_RAW_COLLECTION,
     )
 
     logger.info("Saving companies list data to MongoDB...")
@@ -96,7 +102,9 @@ def ingest_raw_data(year: int = 2021) -> None:
     data_frame_companies_raw_batch["dat_ref"] = year
 
     save_dataframe_to_mongodb(
-        data_frame_companies_raw_batch, MONGODB_DATABASE_RAW, INVOLVED_COMPANIES_RAW_COLLECTION
+        data_frame_companies_raw_batch,
+        MONGODB_DATABASE_RAW,
+        INVOLVED_COMPANIES_RAW_COLLECTION,
     )
 
     logger.info("Saving multiplayer modes to MongoDB...")
@@ -111,7 +119,9 @@ def ingest_raw_data(year: int = 2021) -> None:
     logger.info("Saving game information to MongoDB...")
     data_frame_games_raw_batch["dat_ref"] = year
     save_dataframe_to_mongodb(
-        data_frame_games_raw_batch, MONGODB_DATABASE_RAW, GAME_INFO_RAW_COLLECTION
+        data_frame_games_raw_batch,
+        MONGODB_DATABASE_RAW,
+        GAME_INFO_RAW_COLLECTION,
     )
 
     logger.info("Data ingestion completed successfully.")

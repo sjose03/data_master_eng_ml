@@ -66,7 +66,10 @@ def generate_and_log_plots(
     print("\nMétricas e Gráficos de Treino:")
     train_conf_matrix_path = f"{experiment_name}_train_confusion_matrix.png"
     plot_confusion_matrix(
-        y_train, y_train_pred, "Matriz de Confusão - Treino", train_conf_matrix_path
+        y_train,
+        y_train_pred,
+        "Matriz de Confusão - Treino",
+        train_conf_matrix_path,
     )
     mlflow.log_artifact(train_conf_matrix_path)
     os.remove(train_conf_matrix_path)
@@ -82,12 +85,17 @@ def generate_and_log_plots(
     print("\nMétricas e Gráficos de Teste:")
     test_conf_matrix_path = f"{experiment_name}_test_confusion_matrix.png"
     plot_confusion_matrix(
-        y_test, y_test_pred, "Matriz de Confusão - Teste", test_conf_matrix_path
+        y_test,
+        y_test_pred,
+        "Matriz de Confusão - Teste",
+        test_conf_matrix_path,
     )
     mlflow.log_artifact(test_conf_matrix_path)
     os.remove(test_conf_matrix_path)
 
     test_roc_curve_path = f"{experiment_name}_test_roc_curve.png"
-    plot_roc_curve(y_test, y_test_pred_proba, "Curva ROC - Teste", test_roc_curve_path)
+    plot_roc_curve(
+        y_test, y_test_pred_proba, "Curva ROC - Teste", test_roc_curve_path
+    )
     mlflow.log_artifact(test_roc_curve_path)
     os.remove(test_roc_curve_path)

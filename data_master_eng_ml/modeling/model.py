@@ -43,7 +43,9 @@ def evaluate_model(y_true, y_pred, y_pred_proba):
     plt.show()
 
 
-def log_data_and_plots(X_train, y_train, X_test, y_test, model, experiment_name, algorithm):
+def log_data_and_plots(
+    X_train, y_train, X_test, y_test, model, experiment_name, algorithm
+):
     """
     Loga os dados e os gráficos (Matriz de Confusão, AUC-ROC) no MLflow.
 
@@ -65,7 +67,9 @@ def log_data_and_plots(X_train, y_train, X_test, y_test, model, experiment_name,
     df_full = pd.concat([df_train, df_test])
     df_full.to_csv(data_path, index=False)
     mlflow.log_artifact(data_path)
-    os.remove(data_path)  # Remover o arquivo após o log para evitar acúmulo de arquivos
+    os.remove(
+        data_path
+    )  # Remover o arquivo após o log para evitar acúmulo de arquivos
 
     # Fazer previsões
     y_train_pred, y_train_pred_proba = predict_model(model, X_train, algorithm)
@@ -140,7 +144,9 @@ def train_model(
             mlflow.log_metric("roc_auc_train", train_auc)
 
         elif algorithm == "lightgbm":
-            model, model_params = train_lightgbm(X_train, y_train, X_test, y_test, params)
+            model, model_params = train_lightgbm(
+                X_train, y_train, X_test, y_test, params
+            )
             y_train_pred_proba = model.predict_proba(X_train)[:, 1]
             y_train_pred = model.predict(X_train)
             train_auc = roc_auc_score(y_train, y_train_pred_proba)
@@ -155,7 +161,9 @@ def train_model(
             y_test_pred = (y_test_pred_proba > 0.5).astype(int)
         else:
             y_test_pred_proba = (
-                model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else None
+                model.predict_proba(X_test)[:, 1]
+                if hasattr(model, "predict_proba")
+                else None
             )
             y_test_pred = model.predict(X_test)
 
@@ -173,7 +181,9 @@ def train_model(
         # mlflow.sklearn.log_model(model, f"{algorithm}_model")
 
         # Logar os dados e os gráficos
-        log_data_and_plots(X_train, y_train, X_test, y_test, model, experiment_name, algorithm)
+        log_data_and_plots(
+            X_train, y_train, X_test, y_test, model, experiment_name, algorithm
+        )
 
         return model
 
@@ -256,7 +266,9 @@ def predict_model(model: BaseEstimator, X_test, algorithm):
     else:
         y_test_pred = model.predict(X_test)
         y_test_pred_proba = (
-            model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else None
+            model.predict_proba(X_test)[:, 1]
+            if hasattr(model, "predict_proba")
+            else None
         )
 
     return y_test_pred, y_test_pred_proba

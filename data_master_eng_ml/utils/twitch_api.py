@@ -4,7 +4,9 @@ from loguru import logger
 from data_master_eng_ml.utils.auth_twitch import make_authenticated_request
 
 
-def split_filters(filters: Dict[str, str], max_options: int) -> List[Dict[str, str]]:
+def split_filters(
+    filters: Dict[str, str], max_options: int
+) -> List[Dict[str, str]]:
     """
     Divide os filtros em várias partes, se necessário.
 
@@ -25,7 +27,10 @@ def split_filters(filters: Dict[str, str], max_options: int) -> List[Dict[str, s
 
 
 def build_query(
-    fields: List[str], filters: Optional[Dict[str, str]], limit: int, offset: int
+    fields: List[str],
+    filters: Optional[Dict[str, str]],
+    limit: int,
+    offset: int,
 ) -> str:
     """
     Constrói a query com base nos campos selecionados e filtros fornecidos.
@@ -45,7 +50,9 @@ def build_query(
         if filters
         else ""
     )
-    return f"fields {fields_str}; {where_clause} limit {limit}; offset {offset};"
+    return (
+        f"fields {fields_str}; {where_clause} limit {limit}; offset {offset};"
+    )
 
 
 def fetch_data_with_pagination(
@@ -83,7 +90,9 @@ def fetch_data_with_pagination(
         response = make_authenticated_request(url, query)
 
         if response.status_code != 200:
-            logger.error(f"Erro ao obter dados: {response.status_code} - {response.text}")
+            logger.error(
+                f"Erro ao obter dados: {response.status_code} - {response.text}"
+            )
             break
 
         data = response.json()

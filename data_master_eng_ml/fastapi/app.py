@@ -3,7 +3,12 @@ from typing import Callable, Text
 
 from evidently import ColumnMapping
 from fastapi import FastAPI, BackgroundTasks
-from fastapi.responses import HTMLResponse, JSONResponse, Response, FileResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    Response,
+    FileResponse,
+)
 from evidently._pydantic_compat import BaseModel
 import pandas as pd
 
@@ -19,7 +24,8 @@ from utils import ModelLoader
 
 
 logging.basicConfig(
-    level=logging.INFO, format="FASTAPI_APP - %(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="FASTAPI_APP - %(asctime)s - %(levelname)s - %(message)s",
 )
 
 
@@ -40,7 +46,9 @@ def index() -> HTMLResponse:
 
 @app.post("/predict")
 def predict(
-    response: Response, features_item: Features, background_tasks: BackgroundTasks
+    response: Response,
+    features_item: Features,
+    background_tasks: BackgroundTasks,
 ) -> JSONResponse:
     try:
         # Receive features item and read features batch

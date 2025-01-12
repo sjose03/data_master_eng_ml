@@ -41,7 +41,8 @@ def save_dataframe_to_mongodb(
 
         # Insert data in chunks with progress bar
         for i in tqdm(
-            range(0, len(data_dict), chunk_size), desc=f"Uploading to collection {collection_name}"
+            range(0, len(data_dict), chunk_size),
+            desc=f"Uploading to collection {collection_name}",
         ):
             chunk = data_dict[i : i + chunk_size]
             collection.insert_many(chunk)
@@ -103,7 +104,9 @@ def country_to_continent(country_code):
     try:
         country = pycountry.countries.get(numeric=str(country_code))
         continent_code = pc.country_alpha2_to_continent_code(country.alpha_2)
-        continent_name = pc.convert_continent_code_to_continent_name(continent_code)
+        continent_name = pc.convert_continent_code_to_continent_name(
+            continent_code
+        )
         return continent_name
     except:
         return "Unknown"
@@ -141,11 +144,19 @@ def process_companies_data(data_frame: pd.DataFrame) -> pd.DataFrame:
     data_frame["games_developed"] = data_frame["developed"].apply(array_count)
     data_frame["has_parents"] = data_frame["parent"].notna().astype(int)
     data_frame["games_published"] = data_frame["published"].apply(array_count)
-    data_frame["continent_name"] = data_frame["country"].apply(country_to_continent)
+    data_frame["continent_name"] = data_frame["country"].apply(
+        country_to_continent
+    )
 
     # Removendo colunas desnecessárias
     data_frame = data_frame.drop(
-        columns=["developed", "published", "country", "parent", "start_date_category"]
+        columns=[
+            "developed",
+            "published",
+            "country",
+            "parent",
+            "start_date_category",
+        ]
     )
 
     return data_frame
@@ -168,7 +179,9 @@ def map_perspectives(perspectives: List[int]) -> List[str]:
     return list(
         set(
             [
-                player_perspectives_mapping.get(i, "unknown_player_perspectives")
+                player_perspectives_mapping.get(
+                    i, "unknown_player_perspectives"
+                )
                 for i in perspectives
             ]
         )
@@ -189,7 +202,14 @@ def map_platforms(platforms: List[int]) -> List[str]:
     Returns:
         List[str]: Lista de nomes de plataformas de jogos, sem duplicatas.
     """
-    return list(set([plataform_mapping.get(i, "unknown_platforms_name") for i in platforms]))
+    return list(
+        set(
+            [
+                plataform_mapping.get(i, "unknown_platforms_name")
+                for i in platforms
+            ]
+        )
+    )
 
 
 def map_genres(genres: List[int]) -> str:
@@ -207,7 +227,9 @@ def map_genres(genres: List[int]) -> str:
     Returns:
         str: O nome do gênero de jogo correspondente ao primeiro item da lista mapeada.
     """
-    return list(set([genres_mapping.get(i, "unknown_genres_name") for i in genres]))[0]
+    return list(
+        set([genres_mapping.get(i, "unknown_genres_name") for i in genres])
+    )[0]
 
 
 def map_game_modes(game_modes: List[int]) -> List[str]:
@@ -224,7 +246,14 @@ def map_game_modes(game_modes: List[int]) -> List[str]:
     Returns:
         List[str]: Lista de nomes de modos de jogos, sem duplicatas.
     """
-    return list(set([game_modes_mapping.get(i, "unknown_game_mode") for i in game_modes]))
+    return list(
+        set(
+            [
+                game_modes_mapping.get(i, "unknown_game_mode")
+                for i in game_modes
+            ]
+        )
+    )
 
 
 def process_game_data(data_frame: pd.DataFrame) -> pd.DataFrame:
@@ -246,17 +275,23 @@ def process_game_data(data_frame: pd.DataFrame) -> pd.DataFrame:
         'has_remaster', e 'target'.
     """
     # Preenchendo valores nulos
-    data_frame["player_perspectives"] = data_frame["player_perspectives"].fillna("Unknown")
-    data_frame["game_modes"] = data_frame["game_modes"].fillna("unknown_game_mode")
+    data_frame["player_perspectives"] = data_frame[
+        "player_perspectives"
+    ].fillna("Unknown")
+    data_frame["game_modes"] = data_frame["game_modes"].fillna(
+        "unknown_game_mode"
+    )
     data_frame["genres"] = data_frame["genres"].fillna("unknown_genres_name")
 
     # Aplicando mapeamentos e criando novas colunas
-    data_frame["player_perspective_name"] = data_frame["player_perspectives"].apply(
-        map_perspectives
-    )
+    data_frame["player_perspective_name"] = data_frame[
+        "player_perspectives"
+    ].apply(map_perspectives)
     data_frame["platforms_name"] = data_frame["platforms"].apply(map_platforms)
     data_frame["genres_first"] = data_frame["genres"].apply(map_genres)
-    data_frame["game_modes_name"] = data_frame["game_modes"].apply(map_game_modes)
+    data_frame["game_modes_name"] = data_frame["game_modes"].apply(
+        map_game_modes
+    )
 
     # Adicionando colunas derivadas
     data_frame["has_remaster"] = data_frame["remasters"].notna()
@@ -278,7 +313,9 @@ def process_game_data(data_frame: pd.DataFrame) -> pd.DataFrame:
     return data_frame
 
 
-def map_age_classifications(df: pd.DataFrame, age_ratings_df: pd.DataFrame) -> pd.DataFrame:
+def map_age_classifications(
+    df: pd.DataFrame, age_ratings_df: pd.DataFrame
+) -> pd.DataFrame:
     """
     Mapeia as classificações etárias para o DataFrame principal.
 

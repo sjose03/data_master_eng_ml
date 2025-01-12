@@ -22,7 +22,10 @@ from data_master_eng_ml.transformations.api_feature_data import (
     complete_companies_features,
     complete_game_infos,
 )
-from data_master_eng_ml.utils.helpers import read_data_from_mongodb, save_dataframe_to_mongodb
+from data_master_eng_ml.utils.helpers import (
+    read_data_from_mongodb,
+    save_dataframe_to_mongodb,
+)
 
 app = typer.Typer()
 
@@ -55,7 +58,9 @@ def featurization(year: int = YEAR) -> None:
 
     logger.debug("Reading involved companies list data from MongoDB...")
     data_frame_companies_find = read_data_from_mongodb(
-        MONGODB_DATABASE_RAW, INVOLVED_COMPANIES_LIST_RAW_COLLECTION, query=query
+        MONGODB_DATABASE_RAW,
+        INVOLVED_COMPANIES_LIST_RAW_COLLECTION,
+        query=query,
     )
 
     logger.debug("Reading game release dates data from MongoDB...")
@@ -65,7 +70,9 @@ def featurization(year: int = YEAR) -> None:
 
     # Feature extraction and processing
     logger.debug("Extracting features from game release dates data...")
-    data_frame_games_find_feature = fetch_game_release_dates_feature(data_frame_games_find)
+    data_frame_games_find_feature = fetch_game_release_dates_feature(
+        data_frame_games_find
+    )
 
     logger.debug("Reading involved companies data from MongoDB...")
     data_frame_companies = read_data_from_mongodb(
@@ -73,7 +80,9 @@ def featurization(year: int = YEAR) -> None:
     )
 
     logger.debug("Extracting features from companies data...")
-    data_frame_companies_feature = fetch_companies_info_features(data_frame_companies)
+    data_frame_companies_feature = fetch_companies_info_features(
+        data_frame_companies
+    )
 
     logger.debug("Reading game information data from MongoDB...")
     data_frame_games = read_data_from_mongodb(
@@ -103,7 +112,9 @@ def featurization(year: int = YEAR) -> None:
     # Save the final DataFrame to MongoDB
     logger.debug("Saving the final DataFrame to MongoDB...")
     save_dataframe_to_mongodb(
-        df_join, MONGODB_DATABASE_SILVER, collection_name=GAMES_SILVER_COLLECTION
+        df_join,
+        MONGODB_DATABASE_SILVER,
+        collection_name=GAMES_SILVER_COLLECTION,
     )
     logger.info("Final DataFrame saved to MongoDB successfully.")
 

@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from data_master_eng_ml.transformations.api_transformations import batch_fetch_age_classifications
+from data_master_eng_ml.transformations.api_transformations import (
+    batch_fetch_age_classifications,
+)
 
 from data_master_eng_ml.utils.mappings import (
     region_mapping_inverted,
@@ -16,7 +18,9 @@ from data_master_eng_ml.utils.helpers import (
 import pandas as pd
 
 
-def fetch_game_release_dates_feature(data_frame_games_find: pd.DataFrame) -> pd.DataFrame:
+def fetch_game_release_dates_feature(
+    data_frame_games_find: pd.DataFrame,
+) -> pd.DataFrame:
     """
     Processes game release dates data by adding region names based on region codes.
 
@@ -44,7 +48,9 @@ def fetch_game_release_dates_feature(data_frame_games_find: pd.DataFrame) -> pd.
     return data_frame_games_find
 
 
-def fetch_companies_info_features(data_frame_companies: pd.DataFrame) -> pd.DataFrame:
+def fetch_companies_info_features(
+    data_frame_companies: pd.DataFrame,
+) -> pd.DataFrame:
     """
     Processes detailed information about companies involved in game development and publishing.
 
@@ -90,11 +96,15 @@ def fetch_game_info_features(data_frame_games: pd.DataFrame) -> pd.DataFrame:
     # Process game data for additional formatting
     data_frame_games = process_game_data(data_frame_games)
 
-    unique_age_ratings = data_frame_games["age_ratings"].explode().dropna().unique().tolist()
+    unique_age_ratings = (
+        data_frame_games["age_ratings"].explode().dropna().unique().tolist()
+    )
 
     age_ratings_df = batch_fetch_age_classifications(unique_age_ratings)
 
-    data_frame_games = map_age_classifications(data_frame_games, age_ratings_df)
+    data_frame_games = map_age_classifications(
+        data_frame_games, age_ratings_df
+    )
 
     logger.info("Game information processed successfully.")
     logger.debug("Returning the processed DataFrame.")
@@ -103,7 +113,8 @@ def fetch_game_info_features(data_frame_games: pd.DataFrame) -> pd.DataFrame:
 
 
 def complete_companies_features(
-    data_frame_companies_find: pd.DataFrame, data_frame_companies_feature: pd.DataFrame
+    data_frame_companies_find: pd.DataFrame,
+    data_frame_companies_feature: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Joins two DataFrames containing company information.
@@ -131,7 +142,13 @@ def complete_companies_features(
         how="inner",
     )
     df_companies_final = companies_join[
-        ["game", "games_developed", "has_parents", "games_published", "continent_name"]
+        [
+            "game",
+            "games_developed",
+            "has_parents",
+            "games_published",
+            "continent_name",
+        ]
     ]
     logger.info("Company features joined successfully.")
     logger.debug("Returning the merged DataFrame.")
@@ -166,7 +183,9 @@ def complete_game_infos(
     # Merge with company data and multiplayer modes
     df_companies_games = pd.merge(
         df_companies_final,
-        data_frame_games_find[["game", "region_name"]].drop_duplicates(subset="game"),
+        data_frame_games_find[["game", "region_name"]].drop_duplicates(
+            subset="game"
+        ),
         on="game",
         how="inner",
     )
@@ -201,13 +220,16 @@ def complete_game_infos(
 
     # Generate dummy variables
     df_join = generate_dummies(
-        df_join, ["platforms_name", "game_modes_name", "player_perspective_name"]
+        df_join,
+        ["platforms_name", "game_modes_name", "player_perspective_name"],
     )
 
     logger.debug("Generated dummy variables for categorical data.")
 
     # Add a flag for worldwide release
-    df_join["has_global_launch"] = np.where(df_join["region_name"] == "worldwide", 1, 0)
+    df_join["has_global_launch"] = np.where(
+        df_join["region_name"] == "worldwide", 1, 0
+    )
     df_join = df_join.drop(columns=["region_name"])
 
     logger.info("Final game information DataFrame created successfully.")

@@ -7,7 +7,7 @@ name = "data_master_eng_ml"
 version = "0.0.1"
 description = "Repositorio para armazenar os codigos do case do data master de engenharia de machine learning"
 authors = [
-  { name = "Your name (or your organization/company/team)" },
+  { name = "Jose Petrolio" },
 ]
 
 readme = "README.md"
@@ -18,7 +18,7 @@ classifiers = [
 requires-python = "~=3.10"
 
 [tool.black]
-line-length = 99
+line-length = 79
 include = '\.pyi?$'
 exclude = '''
 /(

@@ -51,7 +51,9 @@ def make_authenticated_request(url: str, data: Dict) -> requests.Response:
     token = get_valid_token()
     headers = {"Authorization": f"Bearer {token}", "Client-Id": TWITCH_ID}
     response = requests.post(url, headers=headers, data=data)
-    if response.status_code == 401:  # Unauthorized, o token pode ter expirado ou ser inválido
+    if (
+        response.status_code == 401
+    ):  # Unauthorized, o token pode ter expirado ou ser inválido
         logger.warning("Token inválido, obtendo um novo token...")
         get_token()
         headers["Authorization"] = f"Bearer {get_valid_token()}"

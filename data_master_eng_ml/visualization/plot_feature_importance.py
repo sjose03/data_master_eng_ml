@@ -4,7 +4,9 @@ import seaborn as sns
 
 def plot_feature_importance(model, feature_names):
     importance = model.get_score(importance_type="weight")
-    importance_sorted = sorted(importance.items(), key=lambda x: x[1], reverse=True)
+    importance_sorted = sorted(
+        importance.items(), key=lambda x: x[1], reverse=True
+    )
 
     plt.figure(figsize=(10, 8))
     sns.barplot(

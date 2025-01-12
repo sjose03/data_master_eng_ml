@@ -34,7 +34,9 @@ def get_token() -> None:
             token_expiration_time = time.time() + token_data["expires_in"]
             print("Novo token obtido com sucesso:", token_data)
         else:
-            print(f"Erro ao obter o token: {token_response.status_code} - {token_response.text}")
+            print(
+                f"Erro ao obter o token: {token_response.status_code} - {token_response.text}"
+            )
             token_response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Ocorreu um erro na requisição: {e}")
@@ -68,8 +70,13 @@ def get_games_by_genre(genre_id):
     Returns:
         list: Lista de jogos filtrados.
     """
-    headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {ACCESS_TOKEN}"}
-    timestamp_2023 = int(datetime(2023, 1, 1).timestamp())  # Timestamp para 1º de janeiro de 2023
+    headers = {
+        "Client-ID": CLIENT_ID,
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+    }
+    timestamp_2023 = int(
+        datetime(2023, 1, 1).timestamp()
+    )  # Timestamp para 1º de janeiro de 2023
     # Consulta para obter jogos lançados a partir de 2023
     body = f"fields name,cover.url,rating,first_release_date; where genres = {genre_id} & first_release_date >= {timestamp_2023}; limit 10;"
 
@@ -89,7 +96,10 @@ def get_genres():
     Returns:
         list: Lista de gêneros de jogos.
     """
-    headers = {"Client-ID": CLIENT_ID, "Authorization": f"Bearer {ACCESS_TOKEN}"}
+    headers = {
+        "Client-ID": CLIENT_ID,
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+    }
     body = "fields name; limit 50;"
 
     response = requests.post(f"{BASE_URL}/genres", headers=headers, data=body)
@@ -135,7 +145,9 @@ genres = get_genres()
 genre_options = {genre["name"]: genre["id"] for genre in genres}
 
 # Seleção de gênero
-selected_genre_name = st.selectbox("Escolha um gênero", list(genre_options.keys()))
+selected_genre_name = st.selectbox(
+    "Escolha um gênero", list(genre_options.keys())
+)
 selected_genre_id = genre_options[selected_genre_name]
 
 # Consultar API por jogos do gênero selecionado
@@ -149,14 +161,18 @@ if games:
     game_options = {game["name"]: game["id"] for game in games}
 
     # Exibir jogos com imagens e permitir seleção
-    selected_game_name = st.selectbox("Escolha um jogo", list(game_options.keys()))
+    selected_game_name = st.selectbox(
+        "Escolha um jogo", list(game_options.keys())
+    )
     selected_game_id = game_options[selected_game_name]
 
     # Mostrar detalhes do jogo selecionado
     for game in games:
         if game["id"] == selected_game_id:
             release_date = (
-                datetime.utcfromtimestamp(game["first_release_date"]).strftime("%d-%m-%Y")
+                datetime.utcfromtimestamp(game["first_release_date"]).strftime(
+                    "%d-%m-%Y"
+                )
                 if "first_release_date" in game
                 else "Data de lançamento desconhecida"
             )

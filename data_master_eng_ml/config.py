@@ -55,4 +55,6 @@ try:
     logger.remove(0)
     logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
 except ModuleNotFoundError:
-    logger.warning("tqdm não está instalado. Logs serão exibidos sem integração com tqdm.")
+    logger.warning(
+        "tqdm não está instalado. Logs serão exibidos sem integração com tqdm."
+    )

@@ -14,7 +14,7 @@ class ModelLoader:
         return cls._instance
 
     def __init__(self) -> None:
-        self.model_path: Text = 'models/model.joblib'
+        self.model_path: Text = "models/model.joblib"
         self.model: Optional[Callable] = None
 
     def get_model(self) -> Callable:
