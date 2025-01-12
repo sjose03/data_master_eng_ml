@@ -1,9 +1,7 @@
 import mlflow
 
 
-def get_best_experiment(
-    min_auc_difference=0.05, experiment_name="Model_Training"
-):
+def get_best_experiment(min_auc_difference=0.05, experiment_name="Model_Training"):
     """
     Recupera o ID do experimento com o maior AUC no conjunto de teste e com uma diferença
     baixa entre AUC de treino e teste.
@@ -46,9 +44,7 @@ def get_best_experiment(
             }
 
     if best_run_id is None:
-        raise ValueError(
-            "Nenhum experimento encontrado que atenda aos critérios."
-        )
+        raise ValueError("Nenhum experimento encontrado que atenda aos critérios.")
 
     print(f"Melhor Experimento Encontrado: Run ID = {best_run_id}")
     print(f"Métricas: {best_run_metrics}")

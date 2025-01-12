@@ -1,7 +1,5 @@
-import os
 from dotenv import load_dotenv
 import pandas as pd
-import requests
 import numpy as np
 
 # Carregando as variáveis de ambiente do arquivo .env
@@ -30,7 +28,6 @@ from data_master_eng_ml.utils.mappings import (
 
 # game_id = 311813
 def game_featurization(game_id):
-
     # Exemplo de uso
     url = f"{URL_TWITCH_BASE}/release_dates"
 
@@ -86,15 +83,13 @@ def game_featurization(game_id):
         try:
             # Converte o código do país para o nome do continente
             country = pycountry.countries.get(numeric=str(country_code))
-            continent_code = pc.country_alpha2_to_continent_code(
-                country.alpha_2
-            )
-            continent_name = pc.convert_continent_code_to_continent_name(
-                continent_code
-            )
+            continent_code = pc.country_alpha2_to_continent_code(country.alpha_2)
+            continent_name = pc.convert_continent_code_to_continent_name(continent_code)
             return continent_name
         except:
-            return "Unknown"  # Retorna 'Unknown' se o código do país não for reconhecido
+            return (
+                "Unknown"  # Retorna 'Unknown' se o código do país não for reconhecido
+            )
 
     def array_count(value):
         if value == "Unknown":
@@ -121,28 +116,26 @@ def game_featurization(game_id):
     }
     # Chamada da função com paginação
     data_frame_companies = fetch_data_with_pagination(url, build_query, fields)
-    data_frame_companies["developed"] = data_frame_companies[
-        "developed"
-    ].fillna("Unknown")
-    data_frame_companies["published"] = data_frame_companies[
-        "published"
-    ].fillna("Unknown")
-    data_frame_companies["country"] = data_frame_companies["country"].fillna(1)
-    data_frame_companies["country"] = data_frame_companies["country"].astype(
-        int
+    data_frame_companies["developed"] = data_frame_companies["developed"].fillna(
+        "Unknown"
     )
-    data_frame_companies["games_developed"] = data_frame_companies[
-        "developed"
-    ].apply(array_count)
+    data_frame_companies["published"] = data_frame_companies["published"].fillna(
+        "Unknown"
+    )
+    data_frame_companies["country"] = data_frame_companies["country"].fillna(1)
+    data_frame_companies["country"] = data_frame_companies["country"].astype(int)
+    data_frame_companies["games_developed"] = data_frame_companies["developed"].apply(
+        array_count
+    )
     data_frame_companies["has_parents"] = (
         data_frame_companies["parent"].notna().astype(int)
     )
-    data_frame_companies["games_published"] = data_frame_companies[
-        "published"
-    ].apply(array_count)
-    data_frame_companies["continent_name"] = data_frame_companies[
-        "country"
-    ].apply(country_to_continent)
+    data_frame_companies["games_published"] = data_frame_companies["published"].apply(
+        array_count
+    )
+    data_frame_companies["continent_name"] = data_frame_companies["country"].apply(
+        country_to_continent
+    )
 
     data_frame_companies = data_frame_companies.drop(
         columns=[
@@ -202,12 +195,10 @@ def game_featurization(game_id):
         if coluna not in data_frame_multiplayer_modes.columns:
             data_frame_multiplayer_modes[coluna] = None
     # Converte todas as colunas booleanas em 0/1
-    boolean_columns = data_frame_multiplayer_modes.select_dtypes(
-        include="bool"
-    ).columns
-    data_frame_multiplayer_modes[boolean_columns] = (
-        data_frame_multiplayer_modes[boolean_columns].astype(int)
-    )
+    boolean_columns = data_frame_multiplayer_modes.select_dtypes(include="bool").columns
+    data_frame_multiplayer_modes[boolean_columns] = data_frame_multiplayer_modes[
+        boolean_columns
+    ].astype(int)
 
     data_frame_multiplayer_modes
 
@@ -233,9 +224,7 @@ def game_featurization(game_id):
     }
 
     # Chamada da função com paginação
-    data_frame_games = fetch_data_with_pagination(
-        url, build_query, fields, filters
-    )
+    data_frame_games = fetch_data_with_pagination(url, build_query, fields, filters)
 
     for coluna in fields:
         if coluna not in data_frame_games.columns:
@@ -255,9 +244,7 @@ def game_featurization(game_id):
         data_frame_games["player_perspectives"]
         .map(
             lambda x: [
-                player_perspectives_mapping.get(
-                    i, "unknown_player_perspectives"
-                )
+                player_perspectives_mapping.get(i, "unknown_player_perspectives")
                 for i in x
             ]
         )
@@ -265,35 +252,23 @@ def game_featurization(game_id):
     )
     data_frame_games["platforms_name"] = (
         data_frame_games["platforms"]
-        .map(
-            lambda x: [
-                plataform_mapping.get(i, "unknown_platforms_name") for i in x
-            ]
-        )
+        .map(lambda x: [plataform_mapping.get(i, "unknown_platforms_name") for i in x])
         .apply(lambda x: list(set(x)))
     )
     data_frame_games["genres_first"] = (
         data_frame_games["genres"]
-        .map(
-            lambda x: [genres_mapping.get(i, "unknown_genres_name") for i in x]
-        )
+        .map(lambda x: [genres_mapping.get(i, "unknown_genres_name") for i in x])
         .apply(lambda x: list(set(x)))
         .apply(lambda x: x[0])
     )
     data_frame_games["game_modes_name"] = (
         data_frame_games["game_modes"]
-        .map(
-            lambda x: [
-                game_modes_mapping.get(i, "unknown_game_mode") for i in x
-            ]
-        )
+        .map(lambda x: [game_modes_mapping.get(i, "unknown_game_mode") for i in x])
         .apply(lambda x: list(set(x)))
     )
     data_frame_games["has_remaster"] = data_frame_games["remasters"].notna()
 
-    data_frame_games["target"] = np.where(
-        data_frame_games["rating"].isna(), 0, 1
-    )
+    data_frame_games["target"] = np.where(data_frame_games["rating"].isna(), 0, 1)
 
     data_frame_games = data_frame_games.drop(
         columns=[
@@ -321,17 +296,15 @@ def game_featurization(game_id):
                 "id": f"= ({lista_query})",
             }
             # Chamada da função com paginação
-            data_frame = fetch_data_with_pagination(
-                url, build_query, fields, filters
-            )
+            data_frame = fetch_data_with_pagination(url, build_query, fields, filters)
             # # Exemplo de uso no DataFrame
             data_frame["age_rating_group"] = data_frame["rating"].map(
                 age_rating_mapping
             )
             # Convertendo a coluna 'age_rating_group' para essa ordem
-            data_frame["age_rating_group"] = data_frame[
-                "age_rating_group"
-            ].astype(age_order)
+            data_frame["age_rating_group"] = data_frame["age_rating_group"].astype(
+                age_order
+            )
             # Pegar o maior valor de 'age_rating_group'
             max_age_rating_group = data_frame["age_rating_group"].max()
             return max_age_rating_group
@@ -400,9 +373,7 @@ def game_featurization(game_id):
     df_exploded = df_join[["id", "platforms_name"]].explode("platforms_name")
 
     # Converte a coluna 'attributes' em colunas de dummies, com prefixo para evitar conflitos
-    dummies = pd.get_dummies(
-        df_exploded["platforms_name"].str.replace("-", "_")
-    )
+    dummies = pd.get_dummies(df_exploded["platforms_name"].str.replace("-", "_"))
 
     # Agrupa por 'id' e faz a soma para agrupar as flags 0/1
     dummies = dummies.groupby(df_exploded["id"]).sum().reset_index()
@@ -414,9 +385,7 @@ def game_featurization(game_id):
     df_exploded = df_join[["id", "game_modes_name"]].explode("game_modes_name")
 
     # Converte a coluna 'attributes' em colunas de dummies, com prefixo para evitar conflitos
-    dummies = pd.get_dummies(
-        df_exploded["game_modes_name"].str.replace("-", "_")
-    )
+    dummies = pd.get_dummies(df_exploded["game_modes_name"].str.replace("-", "_"))
 
     # Agrupa por 'id' e faz a soma para agrupar as flags 0/1
     dummies = dummies.groupby(df_exploded["id"]).sum().reset_index()
@@ -438,9 +407,7 @@ def game_featurization(game_id):
     dummies = dummies.groupby(df_exploded["id"]).sum().reset_index()
 
     # Junte os dummies ao DataFrame original
-    df_join = df_join.drop(columns=["player_perspective_name"]).merge(
-        dummies, on="id"
-    )
+    df_join = df_join.drop(columns=["player_perspective_name"]).merge(dummies, on="id")
 
     # Converte todas as colunas booleanas em 0/1
     boolean_columns = df_join.select_dtypes(include="bool").columns
@@ -448,9 +415,7 @@ def game_featurization(game_id):
 
     import numpy as np
 
-    df_join["has_global_launch"] = np.where(
-        df_join["region_name"] == "worldwide", 1, 0
-    )
+    df_join["has_global_launch"] = np.where(df_join["region_name"] == "worldwide", 1, 0)
 
     df_join = df_join.drop(columns=["region_name"])
 

@@ -68,7 +68,6 @@ def predict(
 
 @app.get("/monitor-model")
 def monitor_model_performance(window_size: int = 3000) -> FileResponse:
-
     logging.info("Read current data")
     current_data: pd.DataFrame = load_current_data(window_size)
 
@@ -89,7 +88,6 @@ def monitor_model_performance(window_size: int = 3000) -> FileResponse:
 
 @app.get("/monitor-target")
 def monitor_target_drift(window_size: int = 3000) -> FileResponse:
-
     logging.info("Read current data")
     current_data: pd.DataFrame = load_current_data(window_size)
 

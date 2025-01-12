@@ -67,9 +67,7 @@ def log_data_and_plots(
     df_full = pd.concat([df_train, df_test])
     df_full.to_csv(data_path, index=False)
     mlflow.log_artifact(data_path)
-    os.remove(
-        data_path
-    )  # Remover o arquivo após o log para evitar acúmulo de arquivos
+    os.remove(data_path)  # Remover o arquivo após o log para evitar acúmulo de arquivos
 
     # Fazer previsões
     y_train_pred, y_train_pred_proba = predict_model(model, X_train, algorithm)

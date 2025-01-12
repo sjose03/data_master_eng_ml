@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
 import mlflow
-import pandas as pd
 import os
 
 
@@ -94,8 +93,6 @@ def generate_and_log_plots(
     os.remove(test_conf_matrix_path)
 
     test_roc_curve_path = f"{experiment_name}_test_roc_curve.png"
-    plot_roc_curve(
-        y_test, y_test_pred_proba, "Curva ROC - Teste", test_roc_curve_path
-    )
+    plot_roc_curve(y_test, y_test_pred_proba, "Curva ROC - Teste", test_roc_curve_path)
     mlflow.log_artifact(test_roc_curve_path)
     os.remove(test_roc_curve_path)

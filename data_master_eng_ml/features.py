@@ -1,9 +1,6 @@
-from pathlib import Path
 
-import pandas as pd
 import typer
 from loguru import logger
-from tqdm import tqdm
 from data_master_eng_ml.config import (
     YEAR,
     GAME_INFO_RAW_COLLECTION,
@@ -80,9 +77,7 @@ def featurization(year: int = YEAR) -> None:
     )
 
     logger.debug("Extracting features from companies data...")
-    data_frame_companies_feature = fetch_companies_info_features(
-        data_frame_companies
-    )
+    data_frame_companies_feature = fetch_companies_info_features(data_frame_companies)
 
     logger.debug("Reading game information data from MongoDB...")
     data_frame_games = read_data_from_mongodb(

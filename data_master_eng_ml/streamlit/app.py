@@ -145,9 +145,7 @@ genres = get_genres()
 genre_options = {genre["name"]: genre["id"] for genre in genres}
 
 # Seleção de gênero
-selected_genre_name = st.selectbox(
-    "Escolha um gênero", list(genre_options.keys())
-)
+selected_genre_name = st.selectbox("Escolha um gênero", list(genre_options.keys()))
 selected_genre_id = genre_options[selected_genre_name]
 
 # Consultar API por jogos do gênero selecionado
@@ -161,9 +159,7 @@ if games:
     game_options = {game["name"]: game["id"] for game in games}
 
     # Exibir jogos com imagens e permitir seleção
-    selected_game_name = st.selectbox(
-        "Escolha um jogo", list(game_options.keys())
-    )
+    selected_game_name = st.selectbox("Escolha um jogo", list(game_options.keys()))
     selected_game_id = game_options[selected_game_name]
 
     # Mostrar detalhes do jogo selecionado
@@ -179,15 +175,17 @@ if games:
             st.markdown(
                 f"""
                 <div style="text-align: center;">
-                    <h2 style="font-size: 24px;">Nome: {game['name']}</h2>
-                    <h3 style="font-size: 20px;">Rating: {round(game.get('rating', 0), 2)}</h3>
+                    <h2 style="font-size: 24px;">Nome: {game["name"]}</h2>
+                    <h3 style="font-size: 20px;">Rating: {round(game.get("rating", 0), 2)}</h3>
                     <h4>Data de Lançamento: {release_date}</h4>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
             if "cover" in game and game["cover"]:
-                game_cover_url = f"https:{game['cover']['url'].replace('t_thumb', 't_cover_big')}"
+                game_cover_url = (
+                    f"https:{game['cover']['url'].replace('t_thumb', 't_cover_big')}"
+                )
                 st.markdown(
                     f'<div style="text-align: center;"><img src="{game_cover_url}" width="300"></div>',
                     unsafe_allow_html=True,

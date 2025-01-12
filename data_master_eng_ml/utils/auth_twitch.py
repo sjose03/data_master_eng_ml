@@ -1,7 +1,5 @@
-import os
 import time
 import requests
-from dotenv import load_dotenv
 from typing import Dict, Optional
 from data_master_eng_ml.config import URL_TOKEN, TWITCH_ID, TWITCH_SECRET
 from loguru import logger

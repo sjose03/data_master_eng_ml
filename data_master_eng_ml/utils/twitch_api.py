@@ -4,9 +4,7 @@ from loguru import logger
 from data_master_eng_ml.utils.auth_twitch import make_authenticated_request
 
 
-def split_filters(
-    filters: Dict[str, str], max_options: int
-) -> List[Dict[str, str]]:
+def split_filters(filters: Dict[str, str], max_options: int) -> List[Dict[str, str]]:
     """
     Divide os filtros em várias partes, se necessário.
 
@@ -50,9 +48,7 @@ def build_query(
         if filters
         else ""
     )
-    return (
-        f"fields {fields_str}; {where_clause} limit {limit}; offset {offset};"
-    )
+    return f"fields {fields_str}; {where_clause} limit {limit}; offset {offset};"
 
 
 def fetch_data_with_pagination(

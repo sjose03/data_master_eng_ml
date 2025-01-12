@@ -18,7 +18,6 @@ class ModelLoader:
         self.model: Optional[Callable] = None
 
     def get_model(self) -> Callable:
-
         if not self.model:
             self._load_model()
 

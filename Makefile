@@ -26,20 +26,15 @@ clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 
-## Lint using flake8 and black (use `make format` to do formatting)
+## Lint using ruff (use `make format` to do formatting)
 .PHONY: lint
 lint:
-	flake8 data_master_eng_ml
-	isort --check --diff --profile black data_master_eng_ml
-	black --check --config pyproject.toml data_master_eng_ml
-
+	ruff check
+	
 ## Format source code with black
 .PHONY: format
 format:
-	black --config pyproject.toml data_master_eng_ml
-
-
-
+	ruff format
 
 ## Set up python interpreter environment
 .PHONY: create_environment
