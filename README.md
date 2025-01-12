@@ -97,6 +97,12 @@ https://pipx.pypa.io/stable/
     API IGDB 
     https://dev.twitch.tv/console/apps/create
 
+    Recuperar de lá o ID e a Secret
+
+    Criar um arquivo .env na raiz do projeto, com as variaveis de ambiente
+    TWITCH_ID=(com o valor da sua secret)
+    TWITCH_SECRET=(com o valor da sua secret)
+
 ## Uso
 
 ### Coleta e Ingestão de Dados
