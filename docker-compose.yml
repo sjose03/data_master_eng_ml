@@ -1,0 +1,17 @@
+
+services:
+  mongodb:
+    image: mongo:6.0  # Última versão estável do MongoDB
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017" # Mapeia a porta local 27017 para a porta do container
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root # Usuário administrador
+      MONGO_INITDB_ROOT_PASSWORD: example # Senha do administrador
+    volumes:
+      - mongodb_data:/data/db # Persiste os dados em um volume
+
+volumes:
+  mongodb_data:
+    driver: local

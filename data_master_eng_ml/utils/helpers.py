@@ -6,7 +6,6 @@ import numpy as np
 from loguru import logger
 from tqdm import tqdm
 
-from data_master_eng_ml.config import MONGODB_URI
 
 from data_master_eng_ml.db import MongoDBClient
 
@@ -17,9 +16,7 @@ from .mappings import (
     game_modes_mapping,
 )
 
-client = MongoDBClient(
-    MONGODB_URI,
-)
+client = MongoDBClient()
 
 
 def save_dataframe_to_mongodb(

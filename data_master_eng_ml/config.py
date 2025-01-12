@@ -14,7 +14,9 @@ logger.info(f"Diretório raiz do projeto: {PROJ_ROOT}")
 # Variáveis de ambiente necessárias
 TWITCH_ID = os.getenv("TWITCH_ID")
 TWITCH_SECRET = os.getenv("TWITCH_SECRET")
-MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_URI = os.getenv(
+    "MONGODB_URI", "mongodb://root:example@localhost:27017/"
+)
 DAGSHUB_TOKEN = os.getenv("DAGSHUB_TOKEN")
 
 # URLs e constantes do projeto
@@ -22,6 +24,7 @@ URL_TWITCH_BASE = "https://api.igdb.com/v4"
 URL_TOKEN = "https://id.twitch.tv/oauth2/token"
 YEAR = 2022  # Ano padrão usado nas operações
 # Nome dos bancos de dados e coleções MongoDB
+MONGODB_DEFAULT_DATABASE = "datamasterml"
 MONGODB_DATABASE_RAW = "datamaster_raw"
 MONGODB_DATABASE_SILVER = "datamaster_silver"
 GAME_RELEASE_DATES_RAW_COLLECTION = "game_release_dates_raw"
