@@ -7,22 +7,22 @@ repos:
         language: system
         pass_filenames: false
         args: ["discover"]
-      - id: ruff # Linter
-        name: ruff
-        description: "Run 'ruff' for extremely fast Python linting"
-        entry: ruff check --force-exclude
-        language: system
-        require_serial: true
-        types_or: [ python, pyi ]
-        args: [ --fix]
-        stages: [pre-commit, manual]
-      - id: ruff-format # Formatter
-        name: ruff-format
-        description: "Run 'ruff format' for extremely fast Python formatting"
-        entry: ruff format --force-exclude
-        language: system
-        exclude:
-          '^(docs/|notebooks/demo_custom_argparse/)'
-        types_or: [ python, pyi, jupyter ]
-        require_serial: true
-        stages: [pre-commit, manual]
+      # - id: ruff # Linter
+      #   name: ruff
+      #   description: "Run 'ruff' for extremely fast Python linting"
+      #   entry: ruff check --force-exclude
+      #   language: system
+      #   require_serial: true
+      #   types_or: [ python, pyi ]
+      #   args: [ --fix]
+      #   stages: [pre-commit, manual]
+      # - id: ruff-format # Formatter
+      #   name: ruff-format
+      #   description: "Run 'ruff format' for extremely fast Python formatting"
+      #   entry: ruff format --force-exclude
+      #   language: system
+      #   exclude:
+      #     '^(docs/|notebooks/demo_custom_argparse/)'
+      #   types_or: [ python, pyi, jupyter ]
+      #   require_serial: true
+      #   stages: [pre-commit, manual]

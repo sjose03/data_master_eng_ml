@@ -57,7 +57,10 @@ def save_dataframe_to_mongodb(
 
 
 def read_data_from_mongodb(
-    database_name: str, collection_name: str, query: Dict[str, Any] = {}
+    client: MongoDBClient,
+    database_name: str,
+    collection_name: str,
+    query: Dict[str, Any] = {},
 ) -> pd.DataFrame:
     """
     Reads data from a MongoDB collection and returns it as a Pandas DataFrame.
