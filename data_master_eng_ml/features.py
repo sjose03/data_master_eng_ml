@@ -76,7 +76,9 @@ def featurization(year: int = YEAR) -> None:
     )
 
     logger.debug("Extracting features from companies data...")
-    data_frame_companies_feature = fetch_companies_info_features(data_frame_companies)
+    data_frame_companies_feature = fetch_companies_info_features(
+        data_frame_companies
+    )
 
     logger.debug("Reading game information data from MongoDB...")
     data_frame_games = read_data_from_mongodb(
@@ -127,7 +129,7 @@ def main(year: int = YEAR):
     logger.info("Generating features from dataset...")
 
     # Call the featurization function
-    df_final = featurization(year)
+    featurization(year)
 
     logger.success("Features generation complete.")
 
