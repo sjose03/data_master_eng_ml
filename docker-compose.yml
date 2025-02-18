@@ -43,6 +43,7 @@ services:
         MLFLOW_S3_ENDPOINT_URL: http://minio:9000
         AWS_ACCESS_KEY_ID: minioadmin
         AWS_SECRET_ACCESS_KEY: minioadmin
+        AWS_DEFAULT_REGION: us-east-1
       volumes:
         - ./mlflow:/mlflow  # Diretório para persistir dados do MLFlow (por exemplo, o tracking server)
       depends_on:
@@ -50,7 +51,7 @@ services:
         - minio-setup
       command: >
         sh -c "pip install mlflow boto3 &&
-              mlflow server --default-artifact-root s3://mlflow --host 0.0.0.0 --port 5000"
+              mlflow server --artifacts-destination s3://mlflow --host 0.0.0.0 --port 5000"
 
 
 volumes:

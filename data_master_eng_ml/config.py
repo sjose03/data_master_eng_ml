@@ -17,13 +17,13 @@ TWITCH_SECRET = os.getenv("TWITCH_SECRET")
 MONGODB_URI = os.getenv(
     "MONGODB_URI", "mongodb://root:example@localhost:27017/"
 )
-MLFLOW_S3_ENDPOINT_URL = os.getenv(
-    "MLFLOW_S3_ENDPOINT_URL", "http://localhost:9000"
-)
-AWS_ACCESS_KEY_ID = os.getenv(
-    "AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY_ID=minioadmin"
-)
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
+# MLFLOW_S3_ENDPOINT_URL = os.getenv(
+#     "MLFLOW_S3_ENDPOINT_URL", "http://localhost:9000"
+# )
+# AWS_ACCESS_KEY_ID = os.getenv(
+#     "AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY_ID=minioadmin"
+# )
+# AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
 DAGSHUB_TOKEN = os.getenv("DAGSHUB_TOKEN")
 
