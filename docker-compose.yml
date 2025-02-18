@@ -1,17 +1,57 @@
-
 services:
-  mongodb:
-    image: mongo:6.0  # Última versão estável do MongoDB
-    container_name: mongodb
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
     restart: always
-    ports:
-      - "27017:27017" # Mapeia a porta local 27017 para a porta do container
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root # Usuário administrador
-      MONGO_INITDB_ROOT_PASSWORD: example # Senha do administrador
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
     volumes:
-      - mongodb_data:/data/db # Persiste os dados em um volume
+      - mongo-data:/data/db
+  minio:
+      image: minio/minio:latest
+      container_name: minio
+      ports:
+        - "9000:9000"      # Endpoint S3
+        - "9001:9001"      # Console web do MinIO
+      environment:
+        MINIO_ROOT_USER: minioadmin
+        MINIO_ROOT_PASSWORD: minioadmin
+      volumes:
+        - ./minio_data:/data  # Diretório local para persistência dos dados do MinIO
+      command: server /data --console-address ":9001"
+
+  minio-setup:
+      image: minio/mc
+      container_name: minio-setup
+      depends_on:
+        - minio
+      entrypoint: >
+        /bin/sh -c "until mc alias set myminio http://minio:9000 minioadmin minioadmin; do
+                      echo 'Aguardando o MinIO iniciar...'; sleep 2; 
+                    done;
+                    mc mb myminio/mlflow || echo 'Bucket mlflow já existe';"
+  mlflow:
+      image: python:3.10-slim
+      container_name: mlflow
+      ports:
+        - "5000:5000"      # Porta do MLFlow server
+      environment:
+        # Variáveis para que o MLFlow acesse o MinIO via protocolo S3
+        MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+        AWS_ACCESS_KEY_ID: minioadmin
+        AWS_SECRET_ACCESS_KEY: minioadmin
+      volumes:
+        - ./mlflow:/mlflow  # Diretório para persistir dados do MLFlow (por exemplo, o tracking server)
+      depends_on:
+        - minio
+        - minio-setup
+      command: >
+        sh -c "pip install mlflow boto3 &&
+              mlflow server --default-artifact-root s3://mlflow --host 0.0.0.0 --port 5000"
+
 
 volumes:
-  mongodb_data:
-    driver: local
+  mongo-data:
