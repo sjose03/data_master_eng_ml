@@ -2,6 +2,8 @@ import pandas as pd
 from typing import List, Dict, Optional
 from loguru import logger
 from data_master_eng_ml.utils.auth_igdb import IGDBAuthenticatedClient
+from pydantic import BaseModel
+from typing import Type
 
 
 client = IGDBAuthenticatedClient()
@@ -60,6 +62,7 @@ def fetch_data_with_pagination(
     fields: List[str],
     filters: Optional[Dict[str, str]] = None,
     max_filter_options: int = 1,
+    schema: Optional[Type[BaseModel]] = None,
 ) -> pd.DataFrame:
     """
     Busca dados com paginação e retorna um DataFrame consolidado.
@@ -70,6 +73,7 @@ def fetch_data_with_pagination(
         fields (List[str]): Lista de campos a serem selecionados.
         filters (Optional[Dict[str, str]]): Dicionário de filtros a serem aplicados na consulta.
         max_filter_options (int): Número máximo de opções por filtro antes de dividir a consulta.
+        schema (Optional[Type[BaseModel]]): Schema para validação dos dados retornados.
 
     Returns:
         pd.DataFrame: DataFrame contendo todos os registros obtidos pela consulta com paginação.
@@ -82,7 +86,6 @@ def fetch_data_with_pagination(
     else:
         filter_combinations = [filters]
 
-    # for sub_filters in filter_combinations:
     offset, limit = 0, 500
     while True:
         query = query_builder(fields, filters, limit, offset)
@@ -95,9 +98,25 @@ def fetch_data_with_pagination(
             break
 
         data = response.json()
+        if schema is not None:
+            validated_data = []
+            for record in data:
+                try:
+                    validated_record = schema(**record)
+                    validated_data.append(validated_record.dict())
+                except Exception as e:
+                    logger.error(f"Erro na validação do registro: {record} - {e}")
+                    raise ValueError(f"Erro na validação do registro: {record} - {e}")
+            data = validated_data
+
+        total_count_header = response.headers.get("x-count")
+        if total_count_header is None:
+            logger.error("Cabeçalho 'x-count' não encontrado na resposta.")
+            break
+        total_count = int(total_count_header)
+        
         all_data.extend(data)
 
-        total_count = int(response.headers.get("x-count", 0))
         if offset + limit >= total_count:
             break
 

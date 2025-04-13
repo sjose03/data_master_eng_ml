@@ -44,7 +44,9 @@ def ingest_raw_data(year: int = 2021) -> None:
 
     # Fetch game release dates
     logger.debug("Fetching game release dates batch...")
-    data_frame_games_find_raw_batch = fetch_raw_game_release_dates_batch(year=year)
+    data_frame_games_find_raw_batch = fetch_raw_game_release_dates_batch(
+        year=year
+    )
 
     # Get unique game IDs
     games_id_batch: List[int] = list(
@@ -65,7 +67,9 @@ def ingest_raw_data(year: int = 2021) -> None:
 
     # Fetch detailed companies info
     logger.debug("Fetching detailed companies information...")
-    data_frame_companies_raw_batch = fetch_raw_companies_info(company_id_list_batch)
+    data_frame_companies_raw_batch = fetch_raw_companies_info(
+        company_id_list_batch
+    )
 
     # Fetch multiplayer modes
     logger.debug("Fetching multiplayer modes batch...")

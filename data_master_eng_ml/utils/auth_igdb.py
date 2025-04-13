@@ -54,7 +54,13 @@ class IGDBAuthenticatedClient:
         """Obtém um novo token e o armazena."""
         try:
             response = requests.post(
-                url=f"{self.token_url}?client_id={self.client_id}&client_secret={self.client_secret}&grant_type=client_credentials"
+                self.token_url,
+                json={
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                    "grant_type": "client_credentials",
+                },
+                timeout=10,
             )
             if response.status_code == 200:
                 self.token = Token.from_response(response.json())
@@ -77,28 +83,21 @@ class IGDBAuthenticatedClient:
             self.get_token()
         return self.token.access_token
 
-    def make_authenticated_request(self, url: str, data: Dict) -> requests.Response:
+    def make_authenticated_request(
+        self, url: str, data: Dict
+    ) -> requests.Response:
         """Faz uma requisição autenticada."""
         try:
-            headers = self._get_headers()
-            response = requests.post(url, headers=headers, data=data)
-
-            if response.status_code == 401:  # Unauthorized
+            for attempt in range(2):
+                headers = self._get_headers()
+                response = requests.post(
+                    url, headers=headers, data=data, timeout=10
+                )
+                if response.status_code != 401:
+                    break
                 logger.warning("Token inválido, obtendo um novo token...")
                 self.get_token()
-                headers = self._get_headers()
-                response = requests.post(url, headers=headers, data=data)
-                if response.status_code == 200:
-                    response.raise_for_status()
-                    return response
-                else:
-                    logger.error(
-                        f"Erro na requisição autenticada: {response.status_code} - {response.text}"
-                    )
-                raise TokenRequestException(
-                    f"Erro na requisição autenticada: {response.status_code} - {response.text}"
-                )
-            elif response.status_code == 200:
+            if response.status_code == 200:
                 response.raise_for_status()
                 return response
             else:

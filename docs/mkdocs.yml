@@ -1,4 +1,17 @@
-site_name: data_master_eng_ml
-# 
-site_author: Your name (or your organization/company/team)
-# 
+site_name: Data Master Eng ML
+site_description: Documentação do projeto.
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Módulos:
+      - Pipeline: docs/modules/pipeline.md
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: True
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python

@@ -14,9 +14,7 @@ logger.info(f"Diretório raiz do projeto: {PROJ_ROOT}")
 # Variáveis de ambiente necessárias
 TWITCH_ID = os.getenv("TWITCH_ID")
 TWITCH_SECRET = os.getenv("TWITCH_SECRET")
-MONGODB_URI = os.getenv(
-    "MONGODB_URI", "mongodb://root:example@localhost:27017/"
-)
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://root:example@localhost:27017/")
 # MLFLOW_S3_ENDPOINT_URL = os.getenv(
 #     "MLFLOW_S3_ENDPOINT_URL", "http://localhost:9000"
 # )
@@ -43,7 +41,7 @@ GAME_INFO_RAW_COLLECTION = "game_info_raw"
 GAMES_SILVER_COLLECTION = "cleaned_games_info"
 
 # Diretórios do projeto
-MODELS_DIR = PROJ_ROOT / "models"
+DUCKDB_PATH = PROJ_ROOT / "db" / "duckdb" / "datamaster.db"
 REPORTS_DIR = PROJ_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 

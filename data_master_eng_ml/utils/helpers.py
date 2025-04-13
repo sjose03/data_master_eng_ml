@@ -1,13 +1,24 @@
 import pycountry_convert as pc
 import pycountry
-from typing import List, Any, Dict
+from typing import List
 import pandas as pd
 import numpy as np
-from loguru import logger
-from tqdm import tqdm
+import duckdb
 
 
-from data_master_eng_ml.db.mongodb_client import MongoDBClient
+# from loguru import logger
+# from tqdm import tqdm
+from datetime import datetime
+
+
+def get_unix_timestamp_for_year_start(year: int) -> int:
+    # Create a datetime object for the first day of the given year
+    first_day_of_year = datetime(year, 1, 1)
+    # Convert the datetime object to a Unix timestamp
+    return int(first_day_of_year.timestamp())
+
+
+# from data_master_eng_ml.db.mongodb_client import MongoDBClient
 
 from .mappings import (
     plataform_mapping,
@@ -16,79 +27,13 @@ from .mappings import (
     game_modes_mapping,
 )
 
-client = MongoDBClient()
 
-
-def save_dataframe_to_mongodb(
-    df: pd.DataFrame,
-    database_name: str,
-    collection_name: str,
-    chunk_size: int = 1000,
-) -> None:
-    """
-    Saves a Pandas DataFrame to MongoDB with a progress bar.
-
-    :param df: The Pandas DataFrame to be saved
-    :param client: An instance of MongoClient connected to MongoDB
-    :param database_name: The name of the database in MongoDB
-    :param collection_name: The name of the collection in MongoDB
-    :param chunk_size: The number of records to insert per chunk (default: 1000)
-    """
-    try:
-        # Accessing the MongoDB database and collection
-        db: Any = client.get_database()
-        collection: Any = db[collection_name]
-
-        # Convert the DataFrame to a list of dictionaries
-        data_dict: list[dict] = df.to_dict(orient="records")
-
-        # Insert data in chunks with progress bar
-        for i in tqdm(
-            range(0, len(data_dict), chunk_size),
-            desc=f"Uploading to collection {collection_name}",
-        ):
-            chunk = data_dict[i : i + chunk_size]
-            collection.insert_many(chunk)
-
-        logger.info("Data successfully inserted into MongoDB!")
-
-    except Exception as e:
-        logger.error(f"Error inserting data into MongoDB: {e}")
-
-
-def read_data_from_mongodb(
-    database_name: str,
-    collection_name: str,
-    query: Dict[str, Any] = {},
-) -> pd.DataFrame:
-    """
-    Reads data from a MongoDB collection and returns it as a Pandas DataFrame.
-
-    :param database_name: The name of the database in MongoDB
-    :param collection_name: The name of the collection in MongoDB
-    :param query: A MongoDB query to filter data (default: {})
-    :return: A Pandas DataFrame containing the data from the MongoDB collection
-    """
-    try:
-        # Accessing the MongoDB database and collection
-        db: Any = client.get_database()
-        collection: Any = db[collection_name]
-
-        # Reading the data from MongoDB
-        cursor = collection.find(query)
-
-        # Converting the cursor to a DataFrame
-        df: pd.DataFrame = pd.DataFrame(list(cursor))
-
-        # Remove MongoDB's default '_id' column if it's not needed
-        if "_id" in df.columns:
-            df.drop("_id", axis=1, inplace=True)
-
-        return df
-
-    except Exception as e:
-        logger.error(f"Error reading data from MongoDB: {e}")
-        return pd.DataFrame()  # Return an empty DataFrame on error
+# Save the DataFrame to a DuckDB database
+def save_to_duckdb(df: pd.DataFrame, table_name: str, db_path: str):
+    # Connect to the DuckDB database
+    with duckdb.connect("file.db") as con:
+        # Save the DataFrame to the specified table
+        con.sql(f"CREATE TABLE IF NOT EXISTS {table_name} AS SELECT * FROM df")
 
 
 def ensure_columns(data_frame, columns):
@@ -108,9 +53,7 @@ def country_to_continent(country_code):
     try:
         country = pycountry.countries.get(numeric=str(country_code))
         continent_code = pc.country_alpha2_to_continent_code(country.alpha_2)
-        continent_name = pc.convert_continent_code_to_continent_name(
-            continent_code
-        )
+        continent_name = pc.convert_continent_code_to_continent_name(continent_code)
         return continent_name
     except:
         return "Unknown"
@@ -148,9 +91,7 @@ def process_companies_data(data_frame: pd.DataFrame) -> pd.DataFrame:
     data_frame["games_developed"] = data_frame["developed"].apply(array_count)
     data_frame["has_parents"] = data_frame["parent"].notna().astype(int)
     data_frame["games_published"] = data_frame["published"].apply(array_count)
-    data_frame["continent_name"] = data_frame["country"].apply(
-        country_to_continent
-    )
+    data_frame["continent_name"] = data_frame["country"].apply(country_to_continent)
 
     # Removendo colunas desnecessárias
     data_frame = data_frame.drop(
@@ -183,9 +124,7 @@ def map_perspectives(perspectives: List[int]) -> List[str]:
     return list(
         set(
             [
-                player_perspectives_mapping.get(
-                    i, "unknown_player_perspectives"
-                )
+                player_perspectives_mapping.get(i, "unknown_player_perspectives")
                 for i in perspectives
             ]
         )
@@ -207,12 +146,7 @@ def map_platforms(platforms: List[int]) -> List[str]:
         List[str]: Lista de nomes de plataformas de jogos, sem duplicatas.
     """
     return list(
-        set(
-            [
-                plataform_mapping.get(i, "unknown_platforms_name")
-                for i in platforms
-            ]
-        )
+        set([plataform_mapping.get(i, "unknown_platforms_name") for i in platforms])
     )
 
 
@@ -231,9 +165,7 @@ def map_genres(genres: List[int]) -> str:
     Returns:
         str: O nome do gênero de jogo correspondente ao primeiro item da lista mapeada.
     """
-    return list(
-        set([genres_mapping.get(i, "unknown_genres_name") for i in genres])
-    )[0]
+    return list(set([genres_mapping.get(i, "unknown_genres_name") for i in genres]))[0]
 
 
 def map_game_modes(game_modes: List[int]) -> List[str]:
@@ -251,12 +183,7 @@ def map_game_modes(game_modes: List[int]) -> List[str]:
         List[str]: Lista de nomes de modos de jogos, sem duplicatas.
     """
     return list(
-        set(
-            [
-                game_modes_mapping.get(i, "unknown_game_mode")
-                for i in game_modes
-            ]
-        )
+        set([game_modes_mapping.get(i, "unknown_game_mode") for i in game_modes])
     )
 
 
@@ -279,23 +206,19 @@ def process_game_data(data_frame: pd.DataFrame) -> pd.DataFrame:
         'has_remaster', e 'target'.
     """
     # Preenchendo valores nulos
-    data_frame["player_perspectives"] = data_frame[
-        "player_perspectives"
-    ].fillna("Unknown")
-    data_frame["game_modes"] = data_frame["game_modes"].fillna(
-        "unknown_game_mode"
+    data_frame["player_perspectives"] = data_frame["player_perspectives"].fillna(
+        "Unknown"
     )
+    data_frame["game_modes"] = data_frame["game_modes"].fillna("unknown_game_mode")
     data_frame["genres"] = data_frame["genres"].fillna("unknown_genres_name")
 
     # Aplicando mapeamentos e criando novas colunas
-    data_frame["player_perspective_name"] = data_frame[
-        "player_perspectives"
-    ].apply(map_perspectives)
+    data_frame["player_perspective_name"] = data_frame["player_perspectives"].apply(
+        map_perspectives
+    )
     data_frame["platforms_name"] = data_frame["platforms"].apply(map_platforms)
     data_frame["genres_first"] = data_frame["genres"].apply(map_genres)
-    data_frame["game_modes_name"] = data_frame["game_modes"].apply(
-        map_game_modes
-    )
+    data_frame["game_modes_name"] = data_frame["game_modes"].apply(map_game_modes)
 
     # Adicionando colunas derivadas
     data_frame["has_remaster"] = data_frame["remasters"].notna()

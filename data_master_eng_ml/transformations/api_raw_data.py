@@ -1,265 +1,100 @@
-import pandas as pd
+"""
+Module: api_raw_data.py
+Description: This module is responsible for fetching raw data from the Twitch API using IGDB endpoints and saving the data into a DuckDB database.
+It leverages pagination during data fetching and logs processing steps using Loguru.
+"""
 
+from typing import Dict, Type
+
+from data_master_eng_ml.schemas.api_schemas import (
+    GamesSchema,
+    PlatformSchema,
+    GenreSchema,
+    PlayerPerspectiveSchema,
+    AgeContentDescriptionSchema,
+    AgeRatingSchema,
+    CompaniesSchema,
+    GamesModesSchema,
+    LanguageSupportSchema,
+    ThemeSchema,
+)
+
+from data_master_eng_ml.utils.helpers import (
+    save_to_duckdb,
+    get_unix_timestamp_for_year_start,
+)
 from data_master_eng_ml.utils.api_igdb import (
     build_query,
     fetch_data_with_pagination,
 )
-from data_master_eng_ml.config import URL_TWITCH_BASE
-
-from data_master_eng_ml.utils.helpers import (
-    ensure_columns,
-)
-from typing import Union, List, Dict
+from data_master_eng_ml.config import URL_TWITCH_BASE, DUCKDB_PATH
 
 from loguru import logger
 
+# Mapping of raw API table names to their corresponding schema classes
+raw_api_tables_schemas: Dict[str, Type] = {
+    "raw_games": GamesSchema,
+    "raw_platforms": PlatformSchema,
+    "raw_player_perspectives": PlayerPerspectiveSchema,
+    "raw_genres": GenreSchema,
+    "raw_themes": ThemeSchema,
+    "raw_companies": CompaniesSchema,
+    "raw_age_ratings": AgeRatingSchema,
+    "raw_languages": LanguageSupportSchema,
+    "raw_age_rating_content_descriptions": AgeContentDescriptionSchema,
+    "raw_game_modes": GamesModesSchema,
+}
 
-def fetch_raw_game_release_dates_single(game_id: int) -> pd.DataFrame:
+
+def fetch_raw_data(year: int = 2022) -> None:
     """
-    Fetches release dates for a single game from the IGDB API.
+    Fetch raw data from the Twitch API and save it to DuckDB.
 
-    This function queries the IGDB API to obtain release dates for a specific game using its ID.
+    This function iterates over a mapping of table names to schema definitions. For each schema, it constructs
+    an API query, fetches the data using pagination support, and saves the resulting DataFrame into a
+    DuckDB table. A filter is applied for the GamesSchema to retrieve data with a 'first_release_date'
+    greater than or equal to the start of the given year.
 
     Args:
-        game_id (int): The unique identifier of the game for which to fetch release dates.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the release dates of the specified game,
-        with additional information such as category, platform, status, region, and more.
+        year (int): The year for which to fetch data. Defaults to 2022.
     """
-    logger.info(f"Fetching release dates for game ID: {game_id}")
+    # Convert the provided year into a Unix timestamp representing the start of the year
+    year_timestamp = get_unix_timestamp_for_year_start(year)
+    logger.info(f"Starting data fetch process for year: {year}")
 
-    url = f"{URL_TWITCH_BASE}/release_dates"
-    fields = [
-        "category",
-        "created_at",
-        "date",
-        "game",
-        "human",
-        "platform",
-        "region",
-        "status",
-        "updated_at",
-        "y",
-    ]
-    filters: Dict[str, str] = {"game": f"= {game_id}"}
+    # Iterate over each table and its corresponding schema
+    for table, schema in raw_api_tables_schemas.items():
+        # Extract the endpoint name from the schema's JSON description
+        schema_json = schema.model_json_schema()
+        description = schema_json.get("description", "")
+        endpoint_name = description.split(" ")[-2] if description else "unknown"
 
-    logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_games_find = fetch_data_with_pagination(
-        url, build_query, fields, filters
-    )
+        # Retrieve the list of fields from the schema properties
+        fields = list(schema_json.get("properties", {}).keys())
 
-    logger.success("Data fetched successfully.")
+        # Define filters for the query: apply filter for GamesSchema based on release date
+        filters = (
+            {"first_release_date": f">= {year_timestamp}"}
+            if schema == GamesSchema
+            else {}
+        )
 
-    return data_frame_games_find
+        # Construct the API URL for the current endpoint
+        url = f"{URL_TWITCH_BASE}/{endpoint_name}"
+        logger.debug(f"Fetching data for endpoint: {endpoint_name}")
+        logger.debug(f"URL: {url}")
+        logger.debug(f"Fields: {fields}")
+        logger.debug(f"Filters: {filters}")
+        logger.debug(f"Schema: {schema.__name__}")
 
+        # Fetch data from the API with pagination support
+        dataframe = fetch_data_with_pagination(
+            url, build_query, fields, filters, schema=schema
+        )
 
-def fetch_raw_game_release_dates_batch(year: int = 2021) -> pd.DataFrame:
-    """
-    Fetches game release dates from the IGDB API for a given year and region.
-
-    This function queries the IGDB API to obtain game release dates based on specific parameters.
-    It returns all release dates for games for a specified year and region.
-
-    Args:
-        year (int): The year for which to fetch game release dates. Defaults to 2021.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the release dates of games, with additional
-        information such as category, platform, status, region, and more.
-    """
-
-    url = f"{URL_TWITCH_BASE}/release_dates"
-    fields = [
-        "category",
-        "created_at",
-        "date",
-        "game",
-        "human",
-        "platform",
-        "region",
-        "status",
-        "updated_at",
-        "y",
-    ]
-    filters: Dict[str, str] = {
-        "status": "= 6",
-        "y": f"= {year}",
-        "region": "= 8",
-    }
-
-    logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_games_find = fetch_data_with_pagination(
-        url, build_query, fields, filters
-    )
-
-    logger.info("Data fetched successfully.")
-
-    logger.debug("Returning the resulting DataFrame.")
-    return data_frame_games_find
-
-
-def fetch_raw_involved_companies(game_id: Union[int, List[int]]) -> pd.DataFrame:
-    """
-    Fetches the companies involved in the development and publishing of a game from the IGDB API.
-
-    This function queries the IGDB API to retrieve information about the companies involved
-    in the development or publishing of a specific game, identified by its ID.
-
-    Args:
-        game_id (int): The ID of the game for which the involved company information should be fetched.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing data about the involved companies, including details
-        such as names, roles (developer, publisher, etc.), and other relevant information.
-    """
-    logger.info(f"Fetching involved companies for game ID: {len(game_id)}")
-
-    url = f"{URL_TWITCH_BASE}/involved_companies"
-    fields = ["*"]
-    filters: Dict[str, str] = {"game": f"= ({game_id})"}
-
-    logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_companies_find = fetch_data_with_pagination(
-        url, build_query, fields, filters
-    )
-
-    logger.info("Data fetched successfully.")
-
-    logger.debug("Returning the resulting DataFrame.")
-    return data_frame_companies_find
-
-
-def fetch_raw_companies_info(company_id_list: Union[int, List[int]]) -> pd.DataFrame:
-    """
-    Fetches detailed information about companies involved in the development and publishing of games from the IGDB API.
-
-    This function queries the IGDB API to retrieve specific information about a list of companies,
-    identified by their IDs. The retrieved data is then processed to fill missing values, add
-    derived columns, and format the DataFrame for analysis.
-
-    Args:
-        company_id_list (List[int]): A list of company IDs whose information should be fetched.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing detailed information about the companies, such as
-        games developed and published, country of origin, operation start dates, and parent company information.
-    """
-    logger.info(f"Fetching information for companies with IDs: {len(company_id_list)}")
-
-    url = f"{URL_TWITCH_BASE}/companies"
-    fields = [
-        "developed",
-        "slug",
-        "published",
-        "country",
-        "start_date",
-        "start_date_category",
-        "parent",
-    ]
-    filters: Dict[str, str] = {"id": f"= ({','.join(map(str, company_id_list))})"}
-
-    logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_companies = fetch_data_with_pagination(url, build_query, fields, filters)
-
-    logger.success("Data fetched successfully.")
-
-    # Ensure that all expected columns are present in the DataFrame
-    logger.debug("Ensuring all expected columns are present in the DataFrame.")
-    data_frame_companies_raw = ensure_columns(data_frame_companies, fields)
-
-    logger.debug("Returning the processed DataFrame.")
-    return data_frame_companies_raw
-
-
-def fetch_raw_multiplayer_modes(game_id: Union[int, List[int]]) -> pd.DataFrame:
-    """
-    Fetches available multiplayer modes for a specific game from the IGDB API.
-
-    This function queries the IGDB API to retrieve detailed information about the multiplayer modes
-    available for a game identified by its ID. The data includes information about cooperative modes,
-    the maximum number of players, and whether the game supports split-screen.
-
-    Args:
-        game_id (int): The ID of the game for which multiplayer mode information should be fetched.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing information about the multiplayer modes, with columns
-        such as 'campaigncoop', 'lancoop', 'offlinecoop', 'offlinecoopmax', 'offlinemax', 'onlinecoop',
-        'onlinecoopmax', 'onlinemax', and 'splitscreen'.
-    """
-    logger.info(f"Fetching multiplayer modes for game ID: {len(game_id)}")
-
-    url = f"{URL_TWITCH_BASE}/multiplayer_modes"
-    fields = [
-        "campaigncoop",
-        "game",
-        "lancoop",
-        "offlinecoop",
-        "offlinecoopmax",
-        "offlinemax",
-        "onlinecoop",
-        "onlinecoopmax",
-        "onlinemax",
-        "splitscreen",
-    ]
-    filters: Dict[str, str] = {"game": f"= ({game_id})"}
-
-    logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_multiplayer_modes = fetch_data_with_pagination(
-        url, build_query, fields, filters
-    )
-
-    logger.info("Data fetched successfully.")
-
-    # Ensure that all expected columns are present in the DataFrame
-    logger.debug("Ensuring all expected columns are present in the DataFrame.")
-    data_frame_multiplayer_modes = ensure_columns(data_frame_multiplayer_modes, fields)
-
-    logger.debug("Returning the processed DataFrame.")
-    return data_frame_multiplayer_modes
-
-
-def fetch_raw_game_info(game_id: Union[int, List[int]]) -> pd.DataFrame:
-    """
-    Fetches detailed information about a specific game from the IGDB API.
-
-    This function queries the IGDB API to retrieve detailed information about a game
-    identified by its ID. The information includes game modes, genres, age ratings,
-    involved companies, player perspectives, platforms, ratings, and remasters.
-
-    Args:
-        game_id (int): The ID of the game for which the information should be fetched.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing detailed information about the game, with columns
-        such as 'name', 'game_modes', 'genres', 'age_ratings', 'involved_companies',
-        'player_perspectives', 'platforms', 'rating', and 'remasters'.
-    """
-    logger.info(f"Fetching detailed information for game ID: {len(game_id)}")
-
-    url = f"{URL_TWITCH_BASE}/games"
-    fields = [
-        "name",
-        "game_modes",
-        "genres",
-        "age_ratings",
-        "involved_companies",
-        "player_perspectives",
-        "platforms",
-        "rating",
-        "remasters",
-    ]
-    filters: Dict[str, str] = {"id": f"= ({game_id})"}
-
-    logger.debug("Constructing the query and initiating data fetch...")
-    data_frame_games = fetch_data_with_pagination(url, build_query, fields, filters)
-
-    logger.info("Data fetched successfully.")
-
-    # Ensure that all expected columns are present in the DataFrame
-    logger.debug("Ensuring all expected columns are present in the DataFrame.")
-    data_frame_games = ensure_columns(data_frame_games, fields)
-
-    logger.debug("Returning the processed DataFrame.")
-    return data_frame_games
+        # Save the fetched DataFrame into the DuckDB database under the specified table name
+        save_to_duckdb(dataframe, table, DUCKDB_PATH)
+        logger.debug(f"Data from endpoint '{endpoint_name}' saved to table '{table}'.")
+        logger.info(
+            f"Completed processing for table: {table} with schema: {schema.__name__}"
+        )
