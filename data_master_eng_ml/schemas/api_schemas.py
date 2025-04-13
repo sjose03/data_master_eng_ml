@@ -139,7 +139,7 @@ class AgeRatingSchema(BaseModel):
     content_descriptions: Optional[List[int]] = None
     rating: Optional[int] = None
     rating_category: Optional[int] = None
-    rating_description: Optional[str] = None
+    rating_content_descriptions: Optional[str] = None
     rating_name: Optional[str] = None
     checksum: Optional[str] = None
 
