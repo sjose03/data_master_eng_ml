@@ -37,6 +37,16 @@ class GamesSchema(BaseModel):
     language_supports: Optional[List[int]] = None
     game_status: Optional[int] = None
     game_type: Optional[int] = None
+    age_ratings: Optional[List[int]] = None
+    aggregated_rating: Optional[float] = None
+    aggregated_rating_count: Optional[int] = None
+    involved_companies: Optional[List[int]] = None
+    franchise: Optional[int] = None
+    franchises: Optional[List[int]] = None
+    rating: Optional[float] = None
+    rating_count: Optional[int] = None
+    remakes: Optional[List[int]] = None
+    remasters: Optional[List[int]] = None
 
 
 class PlatformSchema(BaseModel):
@@ -139,8 +149,7 @@ class AgeRatingSchema(BaseModel):
     content_descriptions: Optional[List[int]] = None
     rating: Optional[int] = None
     rating_category: Optional[int] = None
-    rating_content_descriptions: Optional[str] = None
-    rating_name: Optional[str] = None
+    rating_content_descriptions: Optional[List[int]] = None
     checksum: Optional[str] = None
 
 
@@ -155,7 +164,6 @@ class LanguageSupportSchema(BaseModel):
     native_name: str
     locale: str
     updated_at: int
-    url: Optional[str] = None
     checksum: Optional[str] = None
 
 

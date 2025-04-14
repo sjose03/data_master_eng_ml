@@ -31,7 +31,7 @@ from .mappings import (
 # Save the DataFrame to a DuckDB database
 def save_to_duckdb(df: pd.DataFrame, table_name: str, db_path: str):
     # Connect to the DuckDB database
-    with duckdb.connect("file.db") as con:
+    with duckdb.connect(db_path) as con:
         # Save the DataFrame to the specified table
         con.sql(f"CREATE TABLE IF NOT EXISTS {table_name} AS SELECT * FROM df")
 
